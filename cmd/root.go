@@ -119,10 +119,13 @@ Run rho and use /config to set up your first provider.`, registeredProviderCount
 	Args:          cobra.ArbitraryArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
+	// --cwd is a persistent flag, so apply it before any subcommand runs —
+	// not just the bare root command. This keeps `rho --cwd X <sub>` working
+	// and validates the path once, early.
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return applyCwdFlag()
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := applyCwdFlag(); err != nil {
-			return err
-		}
 		if versionFlag {
 			cmd.Println(versionLine())
 			return nil
@@ -218,7 +221,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&model, "model", "m", "", "model to use (from eyrie catalog; see /models)")
 	rootCmd.Flags().BoolVarP(&printMode, "print", "p", false, "print response and exit")
 	rootCmd.Flags().StringVar(&promptFlag, "prompt", "", "send a single prompt and exit (legacy alias for --print)")
-	rootCmd.Flags().StringVar(&outputFormat, "output-format", "text", `output format for --print: "text", "json", or "stream-json"`)
+	rootCmd.Flags().StringVar(&outputFormat, "output-format", "text", `output format for --print: "text", "json", "stream-json", or "transcript"`)
 	rootCmd.Flags().BoolVar(&printMarkdown, "markdown", false, `render --print text output as styled markdown (needs color; ignored for json/stream-json)`)
 	rootCmd.Flags().StringVar(&outputFields, "output-fields", "", `comma-separated field whitelist for --output-format json (e.g. "result,session_id")`)
 	rootCmd.Flags().StringVar(&inputFormat, "input-format", "text", `input format for --print: "text" or "stream-json"`)
