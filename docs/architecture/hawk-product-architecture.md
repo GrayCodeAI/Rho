@@ -164,7 +164,7 @@ schema.
 
 Status:
 - completed
-- shared contracts now exist for `types`, `review`, `verify`, `tools`, `events`, and `policy`
+- shared contracts now exist for `types`, `contracts/review`, `contracts/verify`, `tools`, `events`, and `policy`
 
 ### Phase 3
 - remove engine imports of Hawk internals
