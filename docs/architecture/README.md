@@ -14,7 +14,6 @@ Documents:
 - `eagle-spec.md` - shared contracts layer and current status
 - `hawk-provider-abstraction.md` - provider/runtime abstraction design
 - `hawk-review-verify-lifecycle.md` - review and verification lifecycle
-- `hawk-swift-event-model.md` - swift and audit event model
 - `hawk-architecture-v1-definition-of-done.md` - realistic shipping bar for architecture v1
 - `adr/ADR-0004-file-first-session-history.md` - canonical session history and SQLite projection boundary
 - `adr/ADR-0001-graycode-platform-telemetry-edge.md` - constrained optional
@@ -33,9 +32,10 @@ to it through the boundaries documented here.
 Final target shape:
 
 - `hawk` is the orchestrator and only primary product surface
-- six peer support engines sit below Hawk:
-  `eyrie`, `harrier`, `shrike`, `swift`, `kestrel`, `merlin`
-- `eagle` and `falcon` sit below those engines as shared foundations
+- `eyrie` sits below Hawk as the provider engine, consumed through its stable
+  engine facade
+- Hawk's token/context engine is embedded (`internal/token`), not a peer repo
+- shared vocabulary lives in Hawk's vendored `internal/contracts`
 - SDKs and community skills sit above Hawk as consumers of Hawk public surfaces
 - `graycode-platform` stays outside the Hawk runtime module graph and exposes
   the optional web/BFF/Hawk Cloud plane
