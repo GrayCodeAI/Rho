@@ -945,6 +945,9 @@ func (s *Session) agentLoop(ctx context.Context, ch chan<- StreamEvent) {
 				resultContent = "(no output)"
 			}
 			resultContent = s.redactToolResult(resultContent)
+			// Network-facing tool output is untrusted: wrap it with an explicit
+			// boundary so prompt-injection text is treated as data.
+			resultContent = wrapExternalToolResult(r.tc.Name, resultContent)
 			msg := types.EyrieMessage{
 				Role:    "user",
 				Content: resultContent,

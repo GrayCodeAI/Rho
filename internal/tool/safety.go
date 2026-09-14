@@ -533,6 +533,19 @@ func WithSSRFSkip(ctx context.Context) context.Context {
 	return context.WithValue(ctx, ssrfSkipKey{}, true)
 }
 
+// ValidateURLPublic is the exported form of validateURLPublic for other
+// packages that perform outbound fetches (e.g. the URL scraper). It rejects
+// URLs that resolve to private/link-local ranges and returns the URL with the
+// resolved IP pinned to prevent DNS rebinding.
+func ValidateURLPublic(ctx context.Context, rawURL string) (pinnedURL, originalHost string, err error) {
+	return validateURLPublic(ctx, rawURL)
+}
+
+// SSRFSafeClient is the exported form of ssrfSafeClient for other packages.
+func SSRFSafeClient(ctx context.Context, timeout time.Duration) *http.Client {
+	return ssrfSafeClient(ctx, timeout)
+}
+
 // validateURLPublic rejects URLs that resolve to private/link-local IP ranges
 // to prevent SSRF attacks (e.g., fetching AWS metadata at 169.254.169.254).
 // Returns the validated URL with the resolved IP pinned as the host (preventing
