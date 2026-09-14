@@ -1,6 +1,7 @@
 package token
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -86,5 +87,46 @@ func TestStatsHardTruncated(t *testing.T) {
 	}
 	if structural.HardTruncated() {
 		t.Error("structurally-compressed Stats should not be hard-truncated")
+	}
+}
+
+func TestCompressCollapsesRepeatingCycle(t *testing.T) {
+	text := strings.Repeat("user: explain the auth flow\nassistant: it uses JWT tokens.\n", 20)
+	out, stats := Compress(text, 10000)
+	if !strings.Contains(out, "repeated blocks") {
+		t.Errorf("expected a cycle marker, got:\n%s", out)
+	}
+	if stats.Layers["cycle"].TokensSaved <= 0 {
+		t.Errorf("cycle layer saved nothing: %+v", stats.Layers)
+	}
+	if stats.HardTruncated() {
+		t.Error("cycle compression should be structural, not hard truncation")
+	}
+}
+
+func TestCompressPreservesHeadAndTail(t *testing.T) {
+	var b strings.Builder
+	b.WriteString("HEAD: the goal is to refactor auth\n")
+	for i := 0; i < 200; i++ {
+		fmt.Fprintf(&b, "filler line number %d with distinct content %d\n", i, i*17)
+	}
+	b.WriteString("TAIL: most recent instruction\n")
+	out, _ := Compress(b.String(), 200)
+	if !strings.Contains(out, "HEAD: the goal is to refactor auth") {
+		t.Errorf("head was dropped:\n%s", out)
+	}
+	if !strings.Contains(out, "TAIL: most recent instruction") {
+		t.Errorf("tail was dropped:\n%s", out)
+	}
+	if !strings.Contains(out, "middle elided") {
+		t.Errorf("expected a middle-elision marker:\n%s", out)
+	}
+}
+
+func TestCompressCycleDoesNotCollapseDistinctLines(t *testing.T) {
+	text := "alpha one\nalpha two\nalpha three\nalpha four\n"
+	out, _ := Compress(text, 10000)
+	if strings.Contains(out, "repeated blocks") {
+		t.Errorf("distinct lines were collapsed as a cycle:\n%s", out)
 	}
 }
