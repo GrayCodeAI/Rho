@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GrayCodeAI/hawk/internal/token"
 	"github.com/GrayCodeAI/hawk/internal/types"
 )
 
@@ -50,9 +49,6 @@ func TestUpdateResolvedRoutePreservesMissingFields(t *testing.T) {
 }
 
 func TestRecordStreamUsageAttributesResolvedRoute(t *testing.T) {
-	if !token.ShrikeAvailable() {
-		t.Skip("shrike engine is the build-harness stub; skipping engine-dependent test")
-	}
 	const (
 		resolvedProvider = "openai"
 		resolvedModel    = "openai/fallback-test-model"

@@ -133,11 +133,11 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 		t.Fatalf("graphjournal.AppendVerification() error = %v", err)
 	}
 	contextNode := graphcontracts.Node{
-		ID:        "harrier/memory/context-1",
+		ID:        "memory/context-1",
 		Kind:      graphcontracts.NodeKnowledge,
 		CreatedAt: saved.CreatedAt,
 		Provenance: graphcontracts.Provenance{
-			Producer: "harrier",
+			Producer: "memory",
 		},
 		Attributes: map[string]string{
 			"data_classification": "metadata_only",
@@ -146,7 +146,7 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 	}
 	if err := graphjournal.AppendContextGraph(
 		saved.ID,
-		"harrier",
+		"memory",
 		"",
 		[]graphcontracts.Node{contextNode},
 		nil,
@@ -156,19 +156,19 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 		t.Fatalf("graphjournal.AppendContextGraph() error = %v", err)
 	}
 	qualityNode := graphcontracts.Node{
-		ID:        "merlin/report/quality-1",
+		ID:        "review/report/quality-1",
 		Kind:      graphcontracts.NodeQuality,
 		CreatedAt: saved.CreatedAt,
 		Provenance: graphcontracts.Provenance{
-			Producer: "merlin",
+			Producer: "review",
 		},
 		Attributes: map[string]string{"entity": "report"},
 	}
 	if err := graphjournal.AppendQualityGraph(
 		saved.ID,
 		"",
-		"merlin",
-		"merlin",
+		"review",
+		"review",
 		[]graphcontracts.Node{qualityNode},
 		nil,
 		nil,
@@ -177,13 +177,13 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 		t.Fatalf("graphjournal.AppendQualityGraph() error = %v", err)
 	}
 	runtimeNode := graphcontracts.Node{
-		ID: "shrike/compression/runtime-1", Kind: graphcontracts.NodeOperations,
+		ID: "token/compression/runtime-1", Kind: graphcontracts.NodeOperations,
 		CreatedAt:  saved.CreatedAt,
-		Provenance: graphcontracts.Provenance{Producer: "shrike"},
+		Provenance: graphcontracts.Provenance{Producer: "token"},
 		Attributes: map[string]string{"entity": "compression"},
 	}
 	if err := graphjournal.AppendRuntimeGraph(
-		saved.ID, "", "context-compaction", "shrike",
+		saved.ID, "", "context-compaction", "token",
 		[]graphcontracts.Node{runtimeNode}, nil, nil,
 		saved.CreatedAt.Add(5*time.Second),
 	); err != nil {
@@ -230,14 +230,14 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 	if !hasExportNodePrefix(export, "hawk/verification/") {
 		t.Fatal("graph export omitted automatic verification observation")
 	}
-	if !hasExportNodePrefix(export, "harrier/memory/") {
-		t.Fatal("graph export omitted retrieved Harrier context")
+	if !hasExportNodePrefix(export, "memory/") {
+		t.Fatal("graph export omitted retrieved memory context")
 	}
-	if !hasExportNodePrefix(export, "merlin/report/") {
-		t.Fatal("graph export omitted Merlin quality report")
+	if !hasExportNodePrefix(export, "review/report/") {
+		t.Fatal("graph export omitted review quality report")
 	}
-	if !hasExportNodePrefix(export, "shrike/compression/") {
-		t.Fatal("graph export omitted Shrike compression operation")
+	if !hasExportNodePrefix(export, "token/compression/") {
+		t.Fatal("graph export omitted token compression operation")
 	}
 }
 
