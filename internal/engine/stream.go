@@ -243,7 +243,6 @@ func (s *Session) agentLoop(ctx context.Context, ch chan<- StreamEvent) {
 		if !s.checkGuardConditions(ctx, ch, turnCount, snowball, loopDet) {
 			return
 		}
-		s.EnsureSandboxPolicyStatement()
 		s.EnsureSkillCatalogStatement()
 		turnCount++
 

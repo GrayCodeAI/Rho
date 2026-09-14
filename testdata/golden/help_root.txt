@@ -60,7 +60,7 @@ Available Commands:
   mcp          Show MCP configuration; run or register hawk as an MCP server
   mission      Run a multi-agent mission (parallel feature execution)
   models       Deployment-aware model catalog (via eyrie)
-  path         Developer path readiness (setup, security, sandbox, ecosystem)
+  path         Developer path readiness (setup, security, ecosystem)
   permissions  List and manage exact permission rules
   plan         Create and manage structured development plans
   plugin       Manage plugins
@@ -105,7 +105,7 @@ Flags:
       --auto-skill                         auto-detect project and install matching skills
   -c, --continue                           continue the most recent conversation in the current directory
       --council                            consult multiple models and synthesize best answer
-      --dangerously-skip-permissions       skip normal permission prompts (hooks, spec gates, sandbox, and dry-run still apply)
+      --dangerously-skip-permissions       skip normal permission prompts (hooks, spec gates, and dry-run still apply)
       --disallowed-tools stringArray       comma or space-separated tool permission rules to deny (e.g. "Bash(git:*) Edit")
       --dry-run                            deny every tool call unconditionally (preview only, nothing executes)
       --fork-session                       when resuming, create a new session ID instead of reusing the original
@@ -132,7 +132,6 @@ Flags:
       --repl                               start interactive REPL mode (like aider) for multi-turn conversation without TUI
       --repo-map                           inject an AST-ranked repository map (Aider-style) into the system prompt
   -r, --resume string                      resume a saved session by ID
-      --sandbox string                     permission sandbox: strict, workspace, or off (same as /autonomy sandbox; not Docker container mode)
       --session-id string                  use a specific session ID for the conversation
       --settings string                    path to a settings JSON file or a JSON string to load for this session
       --startup-profile                    print startup performance profile

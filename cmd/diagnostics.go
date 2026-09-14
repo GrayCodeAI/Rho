@@ -74,7 +74,6 @@ func doctorReport(settings hawkconfig.Settings) string {
 	b.WriteString("\n" + hawkconfig.FormatCatalogHealth(hawkconfig.CatalogHealthReport(context.Background())) + "\n")
 	preflight := hawkconfig.EnginePreflightReportWithSettings(context.Background(), settings, hawkconfig.EnginePreflightOptions{})
 	b.WriteString("\n" + hawkconfig.FormatEnginePreflight(preflight) + "\n")
-	b.WriteString("\n" + hawkconfig.FormatSandboxChecklist(hawkconfig.EvaluateSandboxChecklist(context.Background())) + "\n")
 	b.WriteString("\nBackends (Gap-05):\n")
 	b.WriteString(fmt.Sprintf("  media:      %s\n", backendStatus(tool.MediaEngineName(), tool.MediaEngineName() != "")))
 	b.WriteString(fmt.Sprintf("  stt:        %s\n", backendStatus("", stt.Enabled())))

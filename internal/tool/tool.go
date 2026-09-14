@@ -13,7 +13,6 @@ import (
 
 	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/lint"
-	"github.com/GrayCodeAI/hawk/internal/sandbox"
 	"github.com/GrayCodeAI/hawk/internal/types"
 )
 
@@ -167,7 +166,6 @@ type ToolContext struct {
 	// the lazy model-visible surface for subsequent LLM turns.
 	Registry           *Registry
 	AllowedDirectories []string
-	SandboxMode        sandbox.Mode
 	AutoCommit         bool
 	Protected          PathProtector
 	HarrierBridge      *memory.HarrierBridge

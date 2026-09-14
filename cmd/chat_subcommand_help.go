@@ -25,7 +25,7 @@ func helpCategory(cmdName string) string {
 		return "Tools"
 	case "/doctor", "/cost", "/usage", "/metrics", "/stats", "/integrity", "/stale", "/tokens", "/provider-status":
 		return "Diagnostics"
-	case "/autonomy", "/spec", "/vim", "/theme", "/color", "/mouse", "/select", "/focus", "/follow", "/output-style", "/statusline", "/keybindings", "/voice", "/remote-env", "/refresh-model-catalog", "/mode", "/isolation", "/trust":
+	case "/autonomy", "/spec", "/vim", "/theme", "/color", "/mouse", "/select", "/focus", "/follow", "/output-style", "/statusline", "/keybindings", "/voice", "/remote-env", "/refresh-model-catalog", "/mode", "/trust":
 		return "Settings"
 	default:
 		return "Other"

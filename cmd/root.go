@@ -52,7 +52,6 @@ var (
 	systemPromptFile           string
 	appendSystemPromptFlag     string
 	appendSystemPromptFile     string
-	sandboxFlag                string
 	autoCommitFlag             bool
 	watchFlag                  bool
 	repoMapFlag                bool
@@ -229,7 +228,7 @@ func init() {
 	rootCmd.Flags().StringArrayVar(&toolsFlag, "tools", nil, `available tools: "" disables all tools, "default" enables all, or names like "Bash,Edit,Read"`)
 	rootCmd.Flags().StringArrayVar(&allowedToolsFlag, "allowed-tools", nil, `comma or space-separated tool permission rules to allow (e.g. "Bash(git:*) Edit")`)
 	rootCmd.Flags().StringArrayVar(&disallowedToolsFlag, "disallowed-tools", nil, `comma or space-separated tool permission rules to deny (e.g. "Bash(git:*) Edit")`)
-	rootCmd.Flags().BoolVar(&dangerouslySkipPermissions, "dangerously-skip-permissions", false, "skip normal permission prompts (hooks, spec gates, sandbox, and dry-run still apply)")
+	rootCmd.Flags().BoolVar(&dangerouslySkipPermissions, "dangerously-skip-permissions", false, "skip normal permission prompts (hooks, spec gates, and dry-run still apply)")
 	rootCmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "deny every tool call unconditionally (preview only, nothing executes)")
 	rootCmd.Flags().IntVar(&maxTurns, "max-turns", 0, "maximum number of agentic turns in non-interactive mode")
 	rootCmd.Flags().Float64Var(&maxBudgetUSD, "max-budget-usd", 0, "maximum estimated API spend in USD")
@@ -237,7 +236,6 @@ func init() {
 	rootCmd.Flags().StringVar(&systemPromptFile, "system-prompt-file", "", "read system prompt from a file")
 	rootCmd.Flags().StringVar(&appendSystemPromptFlag, "append-system-prompt", "", "append text to the default or custom system prompt")
 	rootCmd.Flags().StringVar(&appendSystemPromptFile, "append-system-prompt-file", "", "read text from a file and append it to the system prompt")
-	rootCmd.Flags().StringVar(&sandboxFlag, "sandbox", "", "permission sandbox: strict, workspace, or off (same as /autonomy sandbox; not Docker container mode)")
 	rootCmd.Flags().BoolVar(&autoCommitFlag, "auto-commit", false, "auto-commit file changes made by Write and Edit tools")
 	rootCmd.Flags().BoolVar(&watchFlag, "watch", false, "watch the working directory for file changes and re-run on changes")
 	rootCmd.Flags().BoolVar(&repoMapFlag, "repo-map", false, "inject an AST-ranked repository map (Aider-style) into the system prompt")
@@ -298,7 +296,7 @@ func init() {
 
 // confirmDangerousSkipPermissions enforces a safety guard when
 // --dangerously-skip-permissions is set. It skips normal permission prompts,
-// but does not disable hooks, spec gates, sandbox enforcement, or dry-run.
+// but does not disable hooks, spec gates, or dry-run.
 // In a terminal, it requires typing the full confirmation token (not a single
 // key) so a stray keystroke or terminal-escape trickery cannot confirm it. In
 // non-interactive mode (CI, scripts), it requires the
@@ -631,7 +629,6 @@ var preflightCmd = &cobra.Command{
 			cmd.Println(string(out))
 		} else {
 			out := hawkconfig.FormatEnginePreflight(r)
-			out += "\n\n" + hawkconfig.FormatSandboxChecklist(hawkconfig.EvaluateSandboxChecklist(ctx))
 			cmd.Println(out)
 		}
 		if !r.Ready {

@@ -1,4 +1,4 @@
-package sandbox
+package env
 
 import (
 	"sort"
@@ -6,10 +6,10 @@ import (
 )
 
 // DisallowedEnvVars are environment variables that, when overridden in a child
-// process environment, enable command/library/hijacking. Ported from goose
-// `extension.rs::Envs`: blocking these in extension/MCP/plugin configs prevents
-// an untrusted config from redirecting `PATH`, preloading libraries, or
-// monkey-patching the Python/Node/Go toolchains of the spawned process.
+// process environment, enable command/library hijacking. Blocking these in
+// extension/MCP/plugin configs prevents an untrusted config from redirecting
+// PATH, preloading libraries, or monkey-patching the Python/Node/Go toolchains
+// of the spawned process.
 var DisallowedEnvVars = map[string]bool{
 	"PATH":                       true,
 	"LD_PRELOAD":                 true,

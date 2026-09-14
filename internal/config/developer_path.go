@@ -10,7 +10,6 @@ import (
 	"github.com/GrayCodeAI/hawk/internal/home"
 	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/provider/gateway"
-	"github.com/GrayCodeAI/hawk/internal/sandbox"
 	"github.com/GrayCodeAI/hawk/internal/theme"
 	"github.com/GrayCodeAI/hawk/internal/token"
 	"github.com/GrayCodeAI/hawk/internal/tool"
@@ -154,28 +153,6 @@ func EvaluateDeveloperPath(ctx context.Context) DeveloperPathReport {
 		})
 	}
 
-	if sandbox.DockerAvailable() {
-		checks = append(checks, PathCheck{
-			Section: "Sandbox", Name: "docker", Status: PathPass,
-			Detail: "Docker daemon running — Bash runs in container by default", Blocking: true,
-		})
-	} else {
-		checks = append(checks, PathCheck{
-			Section: "Sandbox", Name: "docker", Status: PathFail,
-			Detail:   "Docker not available — agent tools are locked",
-			FixHint:  "Start Docker Desktop or another compatible Docker daemon",
-			Blocking: true,
-		})
-	}
-	// Ordered onboarding checklist (Gap-01): daemon -> image -> registry -> build.
-	for _, item := range EvaluateSandboxChecklist(ctx) {
-		checks = append(checks, PathCheck{
-			Section: "Sandbox", Name: "docker-" + item.Step,
-			Status: item.Status, Detail: item.Detail, FixHint: item.FixCmd,
-			Blocking: item.Status == PathFail,
-		})
-	}
-
 	pre := EnginePreflightReport(ctx)
 	if pre.Ready {
 		checks = append(checks, PathCheck{
@@ -288,7 +265,7 @@ func FormatDeveloperPathReport(ctx context.Context) string {
 	}
 	b.WriteString(theme.Tint("Status:", theme.ReportMuted) + " " + theme.Tint(status, statusColor) + "\n\n")
 
-	sections := []string{"Setup", "Security", "Sandbox", "Ecosystem"}
+	sections := []string{"Setup", "Security", "Ecosystem"}
 	for _, sec := range sections {
 		b.WriteString(theme.Tint(sec, theme.ReportInfo) + "\n")
 		for _, c := range r.Checks {

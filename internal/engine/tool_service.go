@@ -16,7 +16,6 @@ import (
 	"github.com/GrayCodeAI/hawk/internal/observability/metrics"
 	"github.com/GrayCodeAI/hawk/internal/observability/oteltrace"
 	"github.com/GrayCodeAI/hawk/internal/prompts"
-	"github.com/GrayCodeAI/hawk/internal/sandbox"
 	"github.com/GrayCodeAI/hawk/internal/securitylog"
 	"github.com/GrayCodeAI/hawk/internal/tool"
 	"github.com/GrayCodeAI/hawk/internal/types"
@@ -28,8 +27,6 @@ import (
 // god-object decomposition (see docs/session-decomposition.md).
 type ToolService struct {
 	registry          *tool.Registry
-	containerExecutor tool.ContainerExecutor
-	containerRequired bool
 	tracer            *oteltrace.Tracer
 	agentSpawn        tool.AgentSpawnFn
 	snapshots         SnapshotTracker
@@ -185,41 +182,6 @@ func (s *ToolService) WithMetrics(registry *metrics.Registry) *ToolService {
 	return s
 }
 
-// WithContainerExecutor configures container isolation.
-func (s *ToolService) WithContainerExecutor(ce tool.ContainerExecutor, required bool) *ToolService {
-	if s == nil {
-		return s
-	}
-	s.executionConfigMu.Lock()
-	defer s.executionConfigMu.Unlock()
-	s.containerExecutor = ce
-	s.containerRequired = required
-	return s
-}
-
-// SetContainerRequired updates container-first mode without replacing the
-// currently configured executor.
-func (s *ToolService) SetContainerRequired(required bool) {
-	if s == nil {
-		return
-	}
-	s.executionConfigMu.Lock()
-	defer s.executionConfigMu.Unlock()
-	s.containerRequired = required
-}
-
-// SetContainerExecutor updates the executor without changing container-first
-// mode. Keeping the mutation on ToolService makes the pair safe to update
-// while asynchronous container startup/retry is in progress.
-func (s *ToolService) SetContainerExecutor(ce tool.ContainerExecutor) {
-	if s == nil {
-		return
-	}
-	s.executionConfigMu.Lock()
-	defer s.executionConfigMu.Unlock()
-	s.containerExecutor = ce
-}
-
 // WithTracer configures the OTel tracer.
 func (s *ToolService) WithTracer(t *oteltrace.Tracer) *ToolService {
 	s.tracer = t
@@ -367,13 +329,6 @@ func bool2tag(isErr bool) string {
 func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, override tool.Tool, ch chan<- StreamEvent, turn int, intent string) toolExecResult {
 	result := toolExecResult{tc: tc, state: ToolStateValidating}
 	ch <- StreamEvent{Type: "tool_use", ToolName: tc.Name, ToolID: tc.ID, ToolState: ToolStateValidating}
-	containerExecutor, containerRequired := s.containerState()
-	if containerRequired && (containerExecutor == nil || !containerExecutor.Running()) {
-		msg := "Container not ready — tools are disabled until the sandbox is running."
-		ch <- StreamEvent{Type: "tool_result", ToolName: tc.Name, Content: msg, ToolState: ToolStateFailed, ToolReason: ToolReasonExecutionError}
-		result.output, result.isErr, result.err = msg, true, fmt.Errorf("%s", msg)
-		return result
-	}
 	var span *oteltrace.Span
 	if s.tracer != nil {
 		_, span = oteltrace.StartToolSpan(ctx, s.tracer, tc.Name, tc.ID)
@@ -468,7 +423,6 @@ func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, overrid
 	if s.deps.memory != nil {
 		harrier = s.deps.memory.Harrier()
 	}
-	sbMode := s.deps.permissions.SandboxMode()
 	var available []tool.Tool
 	if s.registry != nil {
 		// Full primary set so ToolSearch can discover lazy/optional tools.
@@ -517,7 +471,6 @@ func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, overrid
 		SpecSlugGet:        func() string { return s.deps.permissions.SpecSlug() },
 		SpecSlugSet:        func(slug string) { s.deps.permissions.SetSpecSlug(slug) },
 		AllowedDirectories: s.deps.permissions.AllowedDirs(),
-		SandboxMode:        sbMode,
 		BackgroundManager:  s.EnsureBackgroundManager(),
 		ReadOnlyBash:       s.ReadOnlyBash(),
 		WorkingDir:         s.WorkingDir(),
@@ -526,18 +479,6 @@ func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, overrid
 		AutoCommit:         s.AutoCommit(),
 		TaskExecutor:       s.deps.taskExec,
 	})
-	// Bridge session sandbox policy onto the context so Bash/PowerShell
-	// WrapCommand actually applies. Path guards already read ToolContext.SandboxMode;
-	// process isolation previously only fired when callers set ModeFromContext
-	// explicitly (tests), so configured workspace/strict modes were a no-op for shell.
-	// Only attach for explicit workspace/strict — empty or "off" leave ModeOff so
-	// host shell works without a seatbelt/unshare backend.
-	if sbMode == sandbox.ModeWorkspace || sbMode == sandbox.ModeStrict {
-		toolCtx = sandbox.ContextWithMode(toolCtx, sbMode)
-	}
-	if containerExecutor != nil && containerExecutor.Running() {
-		toolCtx = tool.WithContainerExecutor(toolCtx, containerExecutor)
-	}
 	t := override
 	if t == nil && s.registry != nil {
 		var ok bool
@@ -922,29 +863,6 @@ func (s *ToolService) BackgroundManager() *tool.BackgroundAgentManager {
 	s.bgMu.Lock()
 	defer s.bgMu.Unlock()
 	return s.bgManager
-}
-
-// containerState returns one consistent view for a tool invocation. The
-// executor can be replaced asynchronously by the TUI's container retry path.
-func (s *ToolService) containerState() (tool.ContainerExecutor, bool) {
-	if s == nil {
-		return nil, false
-	}
-	s.executionConfigMu.RLock()
-	defer s.executionConfigMu.RUnlock()
-	return s.containerExecutor, s.containerRequired
-}
-
-// ContainerRequired reports whether container-first mode is on.
-func (s *ToolService) ContainerRequired() bool {
-	_, required := s.containerState()
-	return required
-}
-
-// ContainerExecutor returns the configured container executor, or nil.
-func (s *ToolService) ContainerExecutor() tool.ContainerExecutor {
-	executor, _ := s.containerState()
-	return executor
 }
 
 // Snapshots returns the configured automatic snapshot tracker.

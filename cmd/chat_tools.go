@@ -104,7 +104,6 @@ func optionalTools() []tool.Tool {
 		tool.NewRefactorTool(),
 		tool.ConflictResolverTool{},
 		tool.DebuggerTool{},
-		tool.DevEnvTool{},
 		tool.ProjectVerifyTool{},
 		tool.AppVerifyTool{},
 		tool.GenerateMediaTool{},

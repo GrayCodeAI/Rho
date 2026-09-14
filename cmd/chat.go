@@ -34,7 +34,6 @@ import (
 	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/intelligence/repomap"
 	"github.com/GrayCodeAI/hawk/internal/plugin"
-	"github.com/GrayCodeAI/hawk/internal/sandbox"
 	"github.com/GrayCodeAI/hawk/internal/session"
 	"github.com/GrayCodeAI/hawk/internal/startup"
 	hawkstorage "github.com/GrayCodeAI/hawk/internal/storage"
@@ -220,9 +219,7 @@ func newChatModelWithRegistry(ref *progRef, systemPrompt string, settings hawkco
 	m.invalidateInputLayoutCache()
 	(&m).refreshInputLayoutIfNeeded()
 	m = m.syncViewportMouseWheel().withSyncedLayout()
-	m.containerEnabled = shouldUseContainer()
-	bindChatSession(sess, sid, true)
-	m.containerStatus = "checking Docker…"
+	bindChatSession(sess, sid)
 
 	// Surface startup warnings (missing API key, network, sessions dir).
 	// validateStartup is fully implemented but was previously never called.
@@ -321,7 +318,7 @@ func newChatModelWithRegistry(ref *progRef, systemPrompt string, settings hawkco
 	quickSnapshot := welcomeStatusSnapshot{}
 	m.welcomeSetupState = quickSnapshot.setup
 	m.welcomeAgentsOK = quickSnapshot.agentsOK
-	m.welcomeCache = buildWelcomeMessageWithSnapshot(sess, sid, registry, saved, settings, 0, connectedMCPCount(registry), 0, initWidth, initHeight, nil, quickSnapshot, false, "")
+	m.welcomeCache = buildWelcomeMessageWithSnapshot(sess, sid, registry, saved, settings, 0, connectedMCPCount(registry), 0, initWidth, initHeight, quickSnapshot, "")
 	m.messages = append(m.messages, displayMsg{role: "welcome", content: m.welcomeCache})
 	// First-session control-plane tip (skip when resuming history or when quiet env var is set).
 	if saved == nil && os.Getenv("HAWK_QUIET_START") == "" && os.Getenv("HAWK_SUPPRESS_HINTS") == "" && os.Getenv("HAWK_QUIET") == "" {
@@ -354,26 +351,12 @@ func newChatModelWithRegistry(ref *progRef, systemPrompt string, settings hawkco
 	})
 
 	// Wire credential gate: the tool calls this to prompt the user for access
-	// to a host credential. On approval, the symlink inside the container is
-	// flipped to the staging copy.
+	// to a host credential.
 	SetCredentialGate(func(req tool.CredentialRequest) tool.CredentialResponse {
 		resp := make(chan tool.CredentialResponse, 1)
 		ref.Send(credentialAskMsg{req: req, response: resp})
 		select {
 		case r := <-resp:
-			if r.Approved && req.ContainerID != "" {
-				// Flip the symlink inside the container to grant access.
-				if desc := sandbox.FindCredential(req.Credential); desc != nil {
-					if flipErr := tool.FlipCredentialSymlink(req.ContainerID, req.Credential,
-						sandbox.StagingPath(req.Credential), desc.ContainerPath); flipErr != nil {
-						// The user approved, so a flip failure must be visible:
-						// report it and revoke approval rather than silently
-						// leaving the container without the credential.
-						ref.Send(displayMsg{role: "system", content: fmt.Sprintf("! Credential %q approved but could not be granted to the container: %v", req.Credential, flipErr)})
-						return tool.CredentialResponse{Approved: false, Reason: "credential grant failed: " + flipErr.Error()}
-					}
-				}
-			}
 			return r
 		case <-time.After(5 * time.Minute):
 			return tool.CredentialResponse{Approved: false, Reason: "timed out"}
@@ -537,7 +520,7 @@ func newChatModelWithRegistry(ref *progRef, systemPrompt string, settings hawkco
 }
 
 // refreshInputPlaceholder updates the input placeholder based on the current
-// container lifecycle. Hawk never executes agent tools directly on the host.
+// work mode.
 func (m *chatModel) refreshInputPlaceholder() {
 	work := engine.WorkModeAct
 	if m.session != nil {
@@ -553,18 +536,8 @@ func (m *chatModel) refreshInputPlaceholder() {
 	}
 }
 
-// stopContainer releases the session's Docker sandbox on every CLI exit path.
-func (m *chatModel) stopContainer() {
-	if m == nil || m.containerSandbox == nil {
-		return
-	}
-	_ = m.containerSandbox.Stop()
-	m.containerSandbox = nil
-	if m.session != nil {
-		m.session.SetContainerExecutor(nil)
-	}
-	m.containerReady = false
-}
+// stopContainer is retained as a no-op: container execution has been removed.
+func (m *chatModel) stopContainer() {}
 
 func (m chatModel) Init() tea.Cmd {
 	cmds := []tea.Cmd{initTerminalMouseCmd(m.mouseEnabled()), promptKeepAliveCmd(), eyeBlinkTickCmd()}
@@ -574,9 +547,6 @@ func (m chatModel) Init() tea.Cmd {
 			cmds = append(cmds, fetchPlatformContextIndexCmd())
 		}
 	}
-	m.containerStatus = "checking Docker…"
-	cwd, _ := os.Getwd()
-	cmds = append(cmds, bootContainerCmd(cwd))
 	cmds = append(cmds, m.input.Focus())
 	return tea.Batch(cmds...)
 }
@@ -617,9 +587,8 @@ func runChat() error {
 	startup.Reset()
 	startBackgroundCatalogRefresh(context.Background())
 
-	// On an unexpected panic, persist the active session and stop the
-	// container so a crash loses at most the in-flight message and never
-	// leaves a zombie Docker sandbox. The closure captures the model once it
+	// On an unexpected panic, persist the active session so a crash loses at
+	// most the in-flight message. The closure captures the model once it
 	// exists; before that, saveFn is a no-op (nothing to save).
 	var active *chatModel
 	panicSaveFn = func() {
