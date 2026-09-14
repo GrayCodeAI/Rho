@@ -73,7 +73,7 @@ test-10x: ## Run tests 10 times to surface flakes.
 	go test ./... -race -count=10 -timeout=600s
 
 test-new: ## Run only the Round 2 ecosystem packages (fast iteration).
-	go test -race -count=1 -timeout=60s ./internal/safewrite/... ./internal/jsonc/... ./internal/providers/... ./internal/session/... ./internal/permissions/...
+	go test -race -count=1 -timeout=60s ./internal/safewrite/... ./internal/session/... ./internal/permissions/...
 
 test-live: ## Run opt-in live integration tests (requires real LLM credentials).
 	@echo "Running live integration tests — requires OPENCODEGO_API_KEY"
@@ -86,7 +86,7 @@ cover: ## Generate a coverage report (coverage.out + coverage.html).
 	@echo "Coverage report: coverage.html"
 
 cover-new: ## Coverage report for Round 2 ecosystem packages only.
-	go test -cover -timeout=30s ./internal/safewrite/... ./internal/jsonc/... ./internal/providers/... ./internal/session/... ./internal/permissions/...
+	go test -cover -timeout=30s ./internal/safewrite/... ./internal/session/... ./internal/permissions/...
 
 api-docs: ## Generate HTML API reference from OpenAPI spec.
 	@command -v redoc-cli >/dev/null 2>&1 || (echo "install: npm install -g redoc-cli" && exit 1)
@@ -108,6 +108,12 @@ fmt: ## Format source files (gofumpt + goimports).
 	@command -v $(GOIMPORTS) >/dev/null 2>&1 || (echo "install: go install golang.org/x/tools/cmd/goimports@latest" && exit 1)
 	@git ls-files -- '*.go' | xargs $(GOFUMPT) -w
 	@git ls-files -- '*.go' | xargs $(GOIMPORTS) -w
+
+fmt-check: ## Verify formatting without rewriting files (CI-safe).
+	@command -v $(GOFUMPT)   >/dev/null 2>&1 || (echo "install: go install mvdan.cc/gofumpt@latest"   && exit 1)
+	@command -v $(GOIMPORTS) >/dev/null 2>&1 || (echo "install: go install golang.org/x/tools/cmd/goimports@latest" && exit 1)
+	@out=$$(git ls-files -- '*.go' | xargs $(GOFUMPT) -l); if [ -n "$$out" ]; then echo "gofumpt found unformatted files:"; echo "$$out"; exit 1; fi
+	@out=$$(git ls-files -- '*.go' | xargs $(GOIMPORTS) -l); if [ -n "$$out" ]; then echo "goimports found unformatted files:"; echo "$$out"; exit 1; fi
 
 vet: ## Run go vet.
 	go vet ./...
@@ -154,7 +160,7 @@ tidy: ## Sync workspace modules and verify checksums.
 # ---------------------------------------------------------------------------
 # Composite gate used by CI and pre-push.
 # ---------------------------------------------------------------------------
-ci: tidy fmt vet boundaries lint test-race security api-validate ## Run everything CI runs.
+ci: tidy fmt-check vet boundaries lint test-race security api-validate ## Run everything CI runs.
 	@echo "All CI checks passed."
 
 smoke: ## Quick build + doctor + ecosystem verification.

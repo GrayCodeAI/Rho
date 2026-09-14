@@ -531,12 +531,15 @@ jobs:
           cache: true
       - name: Run fuzz targets
         run: |
-          go test -fuzz=FuzzScanForAIComments   -fuzztime=60s ./cmd/... || true
-          go test -fuzz=FuzzValidateSettings     -fuzztime=60s ./internal/config/... || true
-          go test -fuzz=FuzzIsSuspicious         -fuzztime=60s ./internal/tool/... || true
-          go test -fuzz=FuzzIsSafeGitCommit      -fuzztime=60s ./internal/tool/... || true
-          go test -fuzz=FuzzParseMessage         -fuzztime=60s ./internal/session/... || true
-          go test -fuzz=FuzzParseSessionMeta     -fuzztime=60s ./internal/session/... || true
+          # Each target must name a single package: `-fuzz` rejects `./x/...`
+          # when it expands to more than one package, which previously made the
+          # cmd target fail setup silently under `|| true`.
+          go test -run='^$' -fuzz=FuzzScanForAIComments -fuzztime=60s ./cmd
+          go test -run='^$' -fuzz=FuzzValidateSettings   -fuzztime=60s ./internal/config
+          go test -run='^$' -fuzz=FuzzIsSuspicious       -fuzztime=60s ./internal/tool
+          go test -run='^$' -fuzz=FuzzIsSafeGitCommit    -fuzztime=60s ./internal/tool
+          go test -run='^$' -fuzz=FuzzParseMessage       -fuzztime=60s ./internal/session
+          go test -run='^$' -fuzz=FuzzParseSessionMeta   -fuzztime=60s ./internal/session
 
   # -------------------------------------------------------------------------
   # 10. Smoke — build rho and verify ecosystem CLI wiring.
