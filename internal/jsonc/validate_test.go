@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GrayCodeAI/hawk/internal/jsonc"
+	"github.com/GrayCodeAI/rho/internal/jsonc"
 )
 
 func TestValidate_EmptyDocument(t *testing.T) {

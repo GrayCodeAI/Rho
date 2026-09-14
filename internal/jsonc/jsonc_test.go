@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/GrayCodeAI/hawk/internal/jsonc"
+	"github.com/GrayCodeAI/rho/internal/jsonc"
 )
 
 func TestUnmarshal_PlainJSON(t *testing.T) {

@@ -13,8 +13,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/GrayCodeAI/hawk/internal/safewrite"
-	"github.com/GrayCodeAI/hawk/internal/storage"
+	"github.com/GrayCodeAI/rho/internal/safewrite"
+	"github.com/GrayCodeAI/rho/internal/storage"
 )
 
 // TokenStore manages authentication tokens.

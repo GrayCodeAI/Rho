@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	contracts "github.com/GrayCodeAI/hawk/internal/contracts/policy"
-	"github.com/GrayCodeAI/hawk/internal/permissions"
-	"github.com/GrayCodeAI/hawk/internal/tool"
+	contracts "github.com/GrayCodeAI/rho/internal/contracts/policy"
+	"github.com/GrayCodeAI/rho/internal/permissions"
+	"github.com/GrayCodeAI/rho/internal/tool"
 )
 
 // PermissionRequest is sent from engine to TUI when a tool needs approval.

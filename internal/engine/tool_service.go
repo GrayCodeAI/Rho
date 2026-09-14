@@ -10,15 +10,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GrayCodeAI/hawk/internal/engine/diff"
-	"github.com/GrayCodeAI/hawk/internal/hooks"
-	"github.com/GrayCodeAI/hawk/internal/intelligence/repomap"
-	"github.com/GrayCodeAI/hawk/internal/observability/metrics"
-	"github.com/GrayCodeAI/hawk/internal/observability/oteltrace"
-	"github.com/GrayCodeAI/hawk/internal/prompts"
-	"github.com/GrayCodeAI/hawk/internal/securitylog"
-	"github.com/GrayCodeAI/hawk/internal/tool"
-	"github.com/GrayCodeAI/hawk/internal/types"
+	"github.com/GrayCodeAI/rho/internal/engine/diff"
+	"github.com/GrayCodeAI/rho/internal/hooks"
+	"github.com/GrayCodeAI/rho/internal/intelligence/repomap"
+	"github.com/GrayCodeAI/rho/internal/observability/metrics"
+	"github.com/GrayCodeAI/rho/internal/observability/oteltrace"
+	"github.com/GrayCodeAI/rho/internal/prompts"
+	"github.com/GrayCodeAI/rho/internal/securitylog"
+	"github.com/GrayCodeAI/rho/internal/tool"
+	"github.com/GrayCodeAI/rho/internal/types"
 )
 
 // ToolService is the Session's view of the tool execution surface:

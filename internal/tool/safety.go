@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GrayCodeAI/hawk/internal/env"
-	"github.com/GrayCodeAI/hawk/internal/home"
-	"github.com/GrayCodeAI/hawk/internal/storage"
+	"github.com/GrayCodeAI/rho/internal/env"
+	"github.com/GrayCodeAI/rho/internal/home"
+	"github.com/GrayCodeAI/rho/internal/storage"
 )
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -270,17 +270,17 @@ func IsSensitivePath(path string) string {
 	homeDir := home.MustDir()
 
 	if homeDir != "" {
-		hawkProv := filepath.Join(homeDir, ".hawk", "provider.json")
-		if clean == hawkProv {
-			return "access to ~/.hawk/provider.json is blocked for security (API credentials)"
+		rhoProv := filepath.Join(homeDir, ".rho", "provider.json")
+		if clean == rhoProv {
+			return "access to ~/.rho/provider.json is blocked for security (API credentials)"
 		}
-		hawkEnv := filepath.Join(homeDir, ".hawk", "env")
-		if clean == hawkEnv {
-			return "access to ~/.hawk/env is blocked for security (API keys)"
+		rhoEnv := filepath.Join(homeDir, ".rho", "env")
+		if clean == rhoEnv {
+			return "access to ~/.rho/env is blocked for security (API keys)"
 		}
-		hawkDotEnv := filepath.Join(homeDir, ".hawk", ".env")
-		if clean == hawkDotEnv {
-			return "access to ~/.hawk/.env is blocked for security (API keys)"
+		rhoDotEnv := filepath.Join(homeDir, ".rho", ".env")
+		if clean == rhoDotEnv {
+			return "access to ~/.rho/.env is blocked for security (API keys)"
 		}
 	}
 
@@ -288,14 +288,14 @@ func IsSensitivePath(path string) string {
 		return "access to provider.json is blocked for security (API credentials)"
 	}
 
-	if cfgDir := strings.TrimSpace(env.Getenv("HAWK_CONFIG_DIR")); cfgDir != "" {
+	if cfgDir := strings.TrimSpace(env.Getenv("RHO_CONFIG_DIR")); cfgDir != "" {
 		customEnv := filepath.Join(cfgDir, "env")
 		if matchesResolvedPath(clean, customEnv) {
-			return "access to hawk env file is blocked for security (API keys)"
+			return "access to rho env file is blocked for security (API keys)"
 		}
 		customDotEnv := filepath.Join(cfgDir, ".env")
 		if matchesResolvedPath(clean, customDotEnv) {
-			return "access to hawk .env is blocked for security (API keys)"
+			return "access to rho .env is blocked for security (API keys)"
 		}
 	}
 
@@ -352,7 +352,7 @@ func expandCommandPathVariables(command string) string {
 		value string
 	}{
 		{name: "HOME", value: home.MustDir()},
-		{name: "HAWK_CONFIG_DIR", value: strings.TrimSpace(env.Getenv("HAWK_CONFIG_DIR"))},
+		{name: "RHO_CONFIG_DIR", value: strings.TrimSpace(env.Getenv("RHO_CONFIG_DIR"))},
 		{name: "EYRIE_CONFIG_DIR", value: strings.TrimSpace(env.Getenv("EYRIE_CONFIG_DIR"))},
 	} {
 		if item.value == "" {
@@ -384,7 +384,7 @@ func CommandReferencesSensitivePath(command string) string {
 	}
 	command = expandCommandPathVariables(command)
 	configuredPaths := []string{storage.ProviderConfigPath()}
-	if cfgDir := strings.TrimSpace(env.Getenv("HAWK_CONFIG_DIR")); cfgDir != "" {
+	if cfgDir := strings.TrimSpace(env.Getenv("RHO_CONFIG_DIR")); cfgDir != "" {
 		configuredPaths = append(configuredPaths, filepath.Join(cfgDir, "env"), filepath.Join(cfgDir, ".env"))
 	}
 	for _, candidate := range configuredPaths {
@@ -421,7 +421,7 @@ func CommandReferencesSensitivePath(command string) string {
 		if strings.Contains(tok, "/.ssh/") || strings.HasSuffix(tok, "/.ssh") {
 			return "command references ~/.ssh, blocked for security"
 		}
-		if strings.HasSuffix(tok, ".hawk/provider.json") {
+		if strings.HasSuffix(tok, ".rho/provider.json") {
 			return "command references provider.json, blocked for security (API credentials)"
 		}
 		base := tok

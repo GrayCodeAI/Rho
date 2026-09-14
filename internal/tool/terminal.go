@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GrayCodeAI/hawk/internal/terminal"
+	"github.com/GrayCodeAI/rho/internal/terminal"
 )
 
 func resolveStore(custom *terminal.Store) *terminal.Store {

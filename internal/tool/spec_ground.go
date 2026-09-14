@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/GrayCodeAI/hawk/internal/spec"
+	"github.com/GrayCodeAI/rho/internal/spec"
 )
 
 type SpecGroundTool struct{}
@@ -58,7 +58,7 @@ func (SpecGroundTool) Execute(ctx context.Context, input json.RawMessage) (strin
 
 	dir, err := specDir(ctx)
 	if err != nil {
-		dir = filepath.Join(cwd, ".hawk", "specs")
+		dir = filepath.Join(cwd, ".rho", "specs")
 	}
 
 	var b strings.Builder

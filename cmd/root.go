@@ -11,13 +11,13 @@ import (
 	"sync"
 	"time"
 
-	hawkconfig "github.com/GrayCodeAI/hawk/internal/config"
-	"github.com/GrayCodeAI/hawk/internal/engine"
-	"github.com/GrayCodeAI/hawk/internal/onboarding"
-	"github.com/GrayCodeAI/hawk/internal/plugin"
-	"github.com/GrayCodeAI/hawk/internal/session"
-	"github.com/GrayCodeAI/hawk/internal/tool"
-	"github.com/GrayCodeAI/hawk/internal/update"
+	rhoconfig "github.com/GrayCodeAI/rho/internal/config"
+	"github.com/GrayCodeAI/rho/internal/engine"
+	"github.com/GrayCodeAI/rho/internal/onboarding"
+	"github.com/GrayCodeAI/rho/internal/plugin"
+	"github.com/GrayCodeAI/rho/internal/session"
+	"github.com/GrayCodeAI/rho/internal/tool"
+	"github.com/GrayCodeAI/rho/internal/update"
 	"github.com/spf13/cobra"
 )
 
@@ -87,33 +87,33 @@ func SetBuildDate(d string) {
 }
 
 func registeredProviderCount() int {
-	return hawkconfig.RegisteredProviderCount()
+	return rhoconfig.RegisteredProviderCount()
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "hawk [prompt]",
+	Use:   "rho [prompt]",
 	Short: "AI coding agent powered by eyrie",
-	Long: fmt.Sprintf(`hawk is an AI coding agent that reads, writes, and runs code in your terminal.
+	Long: fmt.Sprintf(`rho is an AI coding agent that reads, writes, and runs code in your terminal.
 
 It connects to %d first-class LLM providers through eyrie, executes tools (file I/O, shell,
 git, web search), and manages sessions — all from a keyboard-driven TUI or
 headless mode for scripts and CI.
 
 Quick orientation:
-  hawk                     Start interactive TUI
-  hawk -p "prompt"         One-shot: send prompt, print response, exit
-  hawk exec "task"         Autonomous multi-turn execution
-  hawk path                Check environment readiness
-  hawk doctor              Run diagnostics
-  hawk config              Manage settings and credentials
+  rho                     Start interactive TUI
+  rho -p "prompt"         One-shot: send prompt, print response, exit
+  rho exec "task"         Autonomous multi-turn execution
+  rho path                Check environment readiness
+  rho doctor              Run diagnostics
+  rho config              Manage settings and credentials
 
 API keys are stored in the OS keychain (macOS Keychain / Linux keyring).
-Run hawk and use /config to set up your first provider.`, registeredProviderCount()),
-	Example: `  hawk
-  hawk -p "explain this repo"
-  hawk exec "fix failing tests"
-  hawk preflight
-  hawk path`,
+Run rho and use /config to set up your first provider.`, registeredProviderCount()),
+	Example: `  rho
+  rho -p "explain this repo"
+  rho exec "fix failing tests"
+  rho preflight
+  rho path`,
 	Args:          cobra.ArbitraryArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -164,7 +164,7 @@ Run hawk and use /config to set up your first provider.`, registeredProviderCoun
 			// the TUI, so gate them identically: untrusted folders block
 			// project automation.
 			if tr := engine.ProjectTrust(""); tr.Blocked {
-				return fmt.Errorf("cannot start: folder not trusted (%s)\nProject-scoped hooks, MCP servers, and custom specialists are blocked.\nRun 'hawk trust add' to trust this folder before running hawk", tr.Path)
+				return fmt.Errorf("cannot start: folder not trusted (%s)\nProject-scoped hooks, MCP servers, and custom specialists are blocked.\nRun 'rho trust add' to trust this folder before running rho", tr.Path)
 			}
 			if replFlag {
 				return runRepl()
@@ -201,7 +201,7 @@ Run hawk and use /config to set up your first provider.`, registeredProviderCoun
 
 		// Folder trust check — block starting CLI in an untrusted directory
 		if tr := engine.ProjectTrust(""); tr.Blocked {
-			return fmt.Errorf("cannot start CLI: folder not trusted (%s)\nProject-scoped hooks, MCP servers, and custom specialists are blocked.\nRun 'hawk trust add' to trust this folder before starting hawk", tr.Path)
+			return fmt.Errorf("cannot start CLI: folder not trusted (%s)\nProject-scoped hooks, MCP servers, and custom specialists are blocked.\nRun 'rho trust add' to trust this folder before starting rho", tr.Path)
 		}
 
 		// Launch TUI — use /config to set API keys; eyrie supplies providers and models
@@ -422,7 +422,7 @@ func groupRootCommands() {
 // In a terminal, it requires typing the full confirmation token (not a single
 // key) so a stray keystroke or terminal-escape trickery cannot confirm it. In
 // non-interactive mode (CI, scripts), it requires the
-// HAWK_DANGEROUSLY_SKIP_PERMISSIONS=1 environment variable.
+// RHO_DANGEROUSLY_SKIP_PERMISSIONS=1 environment variable.
 func confirmDangerousSkipPermissions() error {
 	if isStdinTerminal() {
 		fmt.Fprintf(os.Stderr, "Type %s to confirm skipping permission prompts: ", dangerSkipConfirmToken)
@@ -437,8 +437,8 @@ func confirmDangerousSkipPermissions() error {
 		return nil
 	}
 	// Non-interactive: require explicit env var override.
-	if os.Getenv("HAWK_DANGEROUSLY_SKIP_PERMISSIONS") != "1" {
-		return fmt.Errorf("--dangerously-skip-permissions requires HAWK_DANGEROUSLY_SKIP_PERMISSIONS=1 in non-interactive mode")
+	if os.Getenv("RHO_DANGEROUSLY_SKIP_PERMISSIONS") != "1" {
+		return fmt.Errorf("--dangerously-skip-permissions requires RHO_DANGEROUSLY_SKIP_PERMISSIONS=1 in non-interactive mode")
 	}
 	return nil
 }
@@ -462,31 +462,31 @@ var completionCmd = &cobra.Command{
 	Long: `To load completions:
 
 Bash:
-  source <(hawk completion bash)
+  source <(rho completion bash)
   # To load completions for each session, execute once:
   # Linux:
-  hawk completion bash > /etc/bash_completion.d/hawk
+  rho completion bash > /etc/bash_completion.d/rho
   # macOS:
-  hawk completion bash > /usr/local/etc/bash_completion.d/hawk
+  rho completion bash > /usr/local/etc/bash_completion.d/rho
 
 Zsh:
-  source <(hawk completion zsh)
+  source <(rho completion zsh)
   # To load completions for each session, execute once:
-  hawk completion zsh > "${fpath[1]}/_hawk"
+  rho completion zsh > "${fpath[1]}/_rho"
 
 Fish:
-  hawk completion fish | source
+  rho completion fish | source
   # To load completions for each session, execute once:
-  hawk completion fish > ~/.config/fish/completions/hawk.fish
+  rho completion fish > ~/.config/fish/completions/rho.fish
 
 PowerShell:
-  hawk completion powershell | Out-String | Invoke-Expression
+  rho completion powershell | Out-String | Invoke-Expression
   # To load completions for every new session, run:
-  hawk completion powershell > hawk.ps1
+  rho completion powershell > rho.ps1
   # and source this file from your PowerShell profile.
 
 JSON:
-  hawk completion json
+  rho completion json
   # Print a machine-readable command/flag spec for IDE integration.
 `,
 	DisableFlagsInUseLine: true,
@@ -520,17 +520,17 @@ var completionInstallCmd = &cobra.Command{
 	Long: `Install the shell completion script to the standard location for your OS.
 
 Bash:
-  hawk completion install bash
-  # Installs to ~/.local/share/bash-completion/completions/hawk (Linux)
-  # or /opt/homebrew/etc/bash_completion.d/hawk (macOS Homebrew)
+  rho completion install bash
+  # Installs to ~/.local/share/bash-completion/completions/rho (Linux)
+  # or /opt/homebrew/etc/bash_completion.d/rho (macOS Homebrew)
 
 Zsh:
-  hawk completion install zsh
-  # Installs to the first directory in $fpath (e.g. /usr/local/share/zsh/site-functions/_hawk)
+  rho completion install zsh
+  # Installs to the first directory in $fpath (e.g. /usr/local/share/zsh/site-functions/_rho)
 
 Fish:
-  hawk completion install fish
-  # Installs to ~/.config/fish/completions/hawk.fish`,
+  rho completion install fish
+  # Installs to ~/.config/fish/completions/rho.fish`,
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish"},
 	Args:                  cobra.ExactArgs(1),
@@ -572,8 +572,8 @@ Fish:
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Check for hawk updates",
-	Long:  "Check GitHub for a newer hawk release and print upgrade instructions.",
+	Short: "Check for rho updates",
+	Long:  "Check GitHub for a newer rho release and print upgrade instructions.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ver := version
@@ -591,7 +591,7 @@ var updateCmd = &cobra.Command{
 			return nil
 		}
 		if release == nil {
-			cmd.Println(auditTint("hawk is up to date ("+ver+")", doneGreen))
+			cmd.Println(auditTint("rho is up to date ("+ver+")", doneGreen))
 			return nil
 		}
 		cmd.Println(auditTint("Update available: ", warnAmber) + auditTint(ver+" -> "+release.TagName, textPrimary))
@@ -613,13 +613,13 @@ API keys and secrets are never included.`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var b strings.Builder
-		b.WriteString("## hawk bug report\n\n")
+		b.WriteString("## rho bug report\n\n")
 		b.WriteString(fmt.Sprintf("- **Version:** %s\n", versionLine()))
 		b.WriteString(fmt.Sprintf("- **Platform:** %s\n", update.Platform()))
 		b.WriteString(fmt.Sprintf("- **Go:** %s\n", runtime.Version()))
 		b.WriteString(fmt.Sprintf("- **OS/Arch:** %s/%s\n", runtime.GOOS, runtime.GOARCH))
 		b.WriteString("\n## Doctor output\n\n```\n")
-		settings := hawkconfig.LoadSettings()
+		settings := rhoconfig.LoadSettings()
 		b.WriteString(doctorReport(settings))
 		b.WriteString("\n```\n")
 		cmd.Print(b.String())
@@ -637,7 +637,7 @@ var versionJSON bool
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print hawk version",
+	Short: "Print rho version",
 	Run: func(cmd *cobra.Command, args []string) {
 		if versionJSON {
 			info := versionInfo{Version: DisplayVersion()}
@@ -674,7 +674,7 @@ var setupCmd = &cobra.Command{
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Interactive onboarding wizard for first-time setup",
-	Long:  "Launch the interactive setup wizard to configure credentials, select providers/models, and initialize hawk.",
+	Long:  "Launch the interactive setup wizard to configure credentials, select providers/models, and initialize rho.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		onboarding.Welcome(version)
 		return onboarding.RunSetup()
@@ -738,7 +738,7 @@ var preflightCmd = &cobra.Command{
 			defer prog.Abort()
 			prog.StartStep(0)
 		}
-		r := hawkconfig.EnginePreflightReportWithSettings(ctx, settings, hawkconfig.EnginePreflightOptions{VerifyLive: preflightLiveFlag})
+		r := rhoconfig.EnginePreflightReportWithSettings(ctx, settings, rhoconfig.EnginePreflightOptions{VerifyLive: preflightLiveFlag})
 		if prog != nil {
 			prog.CompleteStep(0)
 			prog.Done()
@@ -750,14 +750,14 @@ var preflightCmd = &cobra.Command{
 			}
 			cmd.Println(string(out))
 		} else {
-			out := hawkconfig.FormatEnginePreflight(r)
+			out := rhoconfig.FormatEnginePreflight(r)
 			cmd.Println(out)
 		}
 		if !r.Ready {
 			if preflightLiveFlag {
 				return fmt.Errorf("live preflight failed — check the selected provider credential and network access")
 			}
-			return fmt.Errorf("preflight failed — run hawk and complete /config")
+			return fmt.Errorf("preflight failed — run rho and complete /config")
 		}
 		return nil
 	},
@@ -767,10 +767,10 @@ var preflightCmd = &cobra.Command{
 // showing a modern old → new transition when the value actually changed.
 // Settable keys are non-secret (API keys error out before reaching here),
 // so displaying the prior value cannot leak a secret.
-func printConfigSetResult(cmd *cobra.Command, key, newVal string, settings hawkconfig.Settings) {
-	oldVal, hadOld := hawkconfig.SettingValue(settings, key)
+func printConfigSetResult(cmd *cobra.Command, key, newVal string, settings rhoconfig.Settings) {
+	oldVal, hadOld := rhoconfig.SettingValue(settings, key)
 	if hadOld && oldVal != "" && oldVal != newVal {
-		cmd.Println(auditTint(key, textPrimary) + auditTint(": ", textMuted) + auditTint(oldVal, textMuted) + auditTint(" → ", hawkColor) + auditTint(newVal, textPrimary) + auditTint(" (updated)", doneGreen))
+		cmd.Println(auditTint(key, textPrimary) + auditTint(": ", textMuted) + auditTint(oldVal, textMuted) + auditTint(" → ", rhoColor) + auditTint(newVal, textPrimary) + auditTint(" (updated)", doneGreen))
 		return
 	}
 	cmd.Println(auditTint("updated ", doneGreen) + auditTint(key, textPrimary))
@@ -784,13 +784,13 @@ var configCmd = &cobra.Command{
 			switch args[0] {
 			case "get":
 				if len(args) != 2 {
-					return fmt.Errorf("usage: hawk config get <key>")
+					return fmt.Errorf("usage: rho config get <key>")
 				}
 				settings, err := loadEffectiveSettings()
 				if err != nil {
 					return err
 				}
-				value, ok := hawkconfig.SettingValue(settings, args[1])
+				value, ok := rhoconfig.SettingValue(settings, args[1])
 				if !ok {
 					return fmt.Errorf("unsupported setting key %q", args[1])
 				}
@@ -802,7 +802,7 @@ var configCmd = &cobra.Command{
 				return nil
 			case "set":
 				if len(args) < 3 {
-					return fmt.Errorf("usage: hawk config set <key> <value>")
+					return fmt.Errorf("usage: rho config set <key> <value>")
 				}
 				key := args[1]
 				newVal := strings.Join(args[2:], " ")
@@ -810,35 +810,35 @@ var configCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				if err := hawkconfig.SetGlobalSetting(key, newVal); err != nil {
+				if err := rhoconfig.SetGlobalSetting(key, newVal); err != nil {
 					return err
 				}
 				printConfigSetResult(cmd, key, newVal, settings)
 				return nil
 			case "provider":
 				if len(args) < 2 {
-					return fmt.Errorf("usage: hawk config provider <name>")
+					return fmt.Errorf("usage: rho config provider <name>")
 				}
 				newVal := strings.Join(args[1:], " ")
 				settings, err := loadEffectiveSettings()
 				if err != nil {
 					return err
 				}
-				if err := hawkconfig.SetGlobalSetting("provider", newVal); err != nil {
+				if err := rhoconfig.SetGlobalSetting("provider", newVal); err != nil {
 					return err
 				}
 				printConfigSetResult(cmd, "provider", newVal, settings)
 				return nil
 			case "model":
 				if len(args) < 2 {
-					return fmt.Errorf("usage: hawk config model <name>")
+					return fmt.Errorf("usage: rho config model <name>")
 				}
 				newVal := strings.Join(args[1:], " ")
 				settings, err := loadEffectiveSettings()
 				if err != nil {
 					return err
 				}
-				if err := hawkconfig.SetGlobalSetting("model", newVal); err != nil {
+				if err := rhoconfig.SetGlobalSetting("model", newVal); err != nil {
 					return err
 				}
 				printConfigSetResult(cmd, "model", newVal, settings)
@@ -848,13 +848,13 @@ var configCmd = &cobra.Command{
 				return nil
 			case "routing-preview":
 				if len(args) < 2 {
-					return fmt.Errorf("usage: hawk config routing-preview <model>")
+					return fmt.Errorf("usage: rho config routing-preview <model>")
 				}
 				settings, err := loadEffectiveSettings()
 				if err != nil {
 					return err
 				}
-				out, err := hawkconfig.RoutingPreviewJSONWithSettings(cmd.Context(), settings, strings.Join(args[1:], " "))
+				out, err := rhoconfig.RoutingPreviewJSONWithSettings(cmd.Context(), settings, strings.Join(args[1:], " "))
 				if err != nil {
 					return err
 				}
@@ -875,10 +875,10 @@ var configCmd = &cobra.Command{
 
 var mcpCmd = &cobra.Command{
 	Use:   "mcp",
-	Short: "Show MCP configuration; run or register hawk as an MCP server",
-	Long: "With no subcommand, summarizes the MCP servers hawk connects to (consumes).\n" +
-		"  hawk mcp serve   — run hawk itself as an MCP server over stdio\n" +
-		"  hawk mcp config  — print the JSON block to register hawk in Claude Desktop/Cursor/Windsurf",
+	Short: "Show MCP configuration; run or register rho as an MCP server",
+	Long: "With no subcommand, summarizes the MCP servers rho connects to (consumes).\n" +
+		"  rho mcp serve   — run rho itself as an MCP server over stdio\n" +
+		"  rho mcp config  — print the JSON block to register rho in Claude Desktop/Cursor/Windsurf",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		settings, err := loadEffectiveSettings()
 		if err != nil {
@@ -960,7 +960,7 @@ var (
 var researchCmd = &cobra.Command{
 	Use:   "research [flags] <metric-command>",
 	Short: "Autonomous research loop (Karpathy autoresearch pattern)",
-	Long:  "hawk research --grep '^val_bpb:' --direction lower 'uv run train.py'",
+	Long:  "rho research --grep '^val_bpb:' --direction lower 'uv run train.py'",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return fmt.Errorf("metric command is required")
@@ -1056,9 +1056,9 @@ var recoverCmd = &cobra.Command{
 and offer to resume them. If a session-id is provided, resume that specific session.
 
 Examples:
-  hawk recover              # List interrupted sessions
-  hawk recover abc123       # Resume specific session
-  hawk --recover            # Auto-resume most recent interrupted session`,
+  rho recover              # List interrupted sessions
+  rho recover abc123       # Resume specific session
+  rho --recover            # Auto-resume most recent interrupted session`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 0 {
 			s, note, err := session.ResumeSession(args[0])
@@ -1075,8 +1075,8 @@ Examples:
 		cmd.Println(session.FormatRecoveryCandidates(candidates))
 
 		if len(candidates) > 0 {
-			cmd.Println(auditTint("Resume with: hawk recover <id>", textMuted))
-			cmd.Println(auditTint("Or launch TUI with: hawk --recover", textMuted))
+			cmd.Println(auditTint("Resume with: rho recover <id>", textMuted))
+			cmd.Println(auditTint("Or launch TUI with: rho --recover", textMuted))
 		}
 		return nil
 	},
