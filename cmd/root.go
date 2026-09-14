@@ -347,8 +347,6 @@ func groupRootCommands() {
 		"checkpoint": groupWorkflow,
 		"resume":     groupWorkflow,
 		"recover":    groupWorkflow,
-		"replay":     groupWorkflow,
-		"tape":       groupWorkflow,
 
 		// Context & memory: codebase context and learned state.
 		"context":     groupContext,
@@ -390,17 +388,15 @@ func groupRootCommands() {
 		"bug-report":  groupDiagnose,
 
 		// Reference: lookup and misc utilities.
-		"version":      groupReference,
-		"completion":   groupReference,
-		"manpage":      groupReference,
-		"schema":       groupReference,
-		"update":       groupReference,
-		"feedback":     groupReference,
-		"sandbox":      groupReference,
-		"graph":        groupReference,
-		"swift-report": groupReference,
-		"history":      groupReference,
-		"research":     groupReference,
+		"version":    groupReference,
+		"completion": groupReference,
+		"manpage":    groupReference,
+		"update":     groupReference,
+		"feedback":   groupReference,
+		"sandbox":    groupReference,
+		"graph":      groupReference,
+		"history":    groupReference,
+		"research":   groupReference,
 	}
 
 	for _, cmd := range rootCmd.Commands() {
