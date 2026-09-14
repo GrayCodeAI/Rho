@@ -441,8 +441,8 @@ func bindChatSession(sess *engine.Session, sessionID string) {
 }
 
 func validateRootFlags() error {
-	if outputFormat != "text" && outputFormat != "json" && outputFormat != "stream-json" {
-		return fmt.Errorf("--output-format must be one of: text, json, stream-json")
+	if outputFormat != "text" && outputFormat != "json" && outputFormat != "stream-json" && outputFormat != "transcript" {
+		return fmt.Errorf("--output-format must be one of: text, json, stream-json, transcript")
 	}
 	if inputFormat != "text" && inputFormat != "stream-json" {
 		return fmt.Errorf("--input-format must be one of: text, stream-json")

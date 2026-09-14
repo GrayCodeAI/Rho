@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -69,6 +70,7 @@ var (
 	startupProfileFlag         bool
 	preflightLiveFlag          bool
 	quietFlag                  bool
+	cwdFlag                    string
 )
 
 var (
@@ -118,6 +120,9 @@ Run rho and use /config to set up your first provider.`, registeredProviderCount
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := applyCwdFlag(); err != nil {
+			return err
+		}
 		if versionFlag {
 			cmd.Println(versionLine())
 			return nil
@@ -256,6 +261,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&recoverFlag, "recover", false, "scan for interrupted sessions and offer to resume")
 	rootCmd.Flags().BoolVar(&startupProfileFlag, "startup-profile", false, "print startup performance profile")
 	rootCmd.PersistentFlags().BoolVarP(&quietFlag, "quiet", "q", false, "suppress non-essential output (spinners, progress, decoration); machine-parseable output only")
+	rootCmd.PersistentFlags().StringVar(&cwdFlag, "cwd", "", "run against this project directory instead of the current one")
 	preflightCmd.Flags().BoolVar(&preflightLiveFlag, "live", false, "verify selected provider connectivity and authentication")
 	preflightCmd.Flags().BoolVar(&preflightJSON, "json", false, "output preflight report as JSON")
 	doctorCmd.Flags().BoolVar(&doctorJSONFlag, "json", false, "output diagnostics as JSON")
@@ -1029,6 +1035,31 @@ func init() {
 }
 
 // Execute runs the root command.
+// applyCwdFlag changes the process working directory when --cwd is set, so
+// every downstream path (session store, tools, repo map, git) resolves against
+// the requested project. It is a no-op when the flag is empty.
+func applyCwdFlag() error {
+	dir := strings.TrimSpace(cwdFlag)
+	if dir == "" {
+		return nil
+	}
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return fmt.Errorf("--cwd %q: %w", dir, err)
+	}
+	info, err := os.Stat(abs)
+	if err != nil {
+		return fmt.Errorf("--cwd %q: %w", dir, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("--cwd %q is not a directory", dir)
+	}
+	if err := os.Chdir(abs); err != nil {
+		return fmt.Errorf("--cwd %q: %w", dir, err)
+	}
+	return nil
+}
+
 func Execute() error {
 	// Cobra defaults command output to stderr when no writer is configured.
 	// The process entrypoint must make stdout/stderr semantics explicit so

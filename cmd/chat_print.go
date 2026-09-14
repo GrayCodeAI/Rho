@@ -132,6 +132,8 @@ func runPrint(text string) error {
 			case "text":
 				printTextResponse(printed.String())
 				printTextUsageFooter(lastUsage, started, turns, effectiveModel)
+			case "transcript":
+				printTranscript(sessionID, effectiveModel, printed.String(), lastUsage, started, turns)
 			case "json":
 				writePrintResult(printed.String(), sessionID, sess, false, nil)
 			case "stream-json":
@@ -196,6 +198,27 @@ func printTextUsageFooter(usage *engine.StreamUsage, started time.Time, turns in
 		parts = append(parts, model)
 	}
 	_, _ = fmt.Fprintf(os.Stderr, "%s\n", auditTint("tokens: "+strings.Join(parts, " · "), textMuted))
+}
+
+// printTranscript emits a plain, timestamped transcript of the turn to stdout.
+// It is the "transcript" output format: human-readable, stable, and free of
+// ANSI so it can be pasted into a bug report or piped to a file.
+func printTranscript(sessionID, model, response string, usage *engine.StreamUsage, started time.Time, turns int) {
+	var b strings.Builder
+	fmt.Fprintf(&b, "# rho transcript\n")
+	fmt.Fprintf(&b, "session: %s\n", sessionID)
+	if model != "" {
+		fmt.Fprintf(&b, "model:   %s\n", model)
+	}
+	fmt.Fprintf(&b, "started: %s\n", started.Format(time.RFC3339))
+	fmt.Fprintf(&b, "turns:   %d\n", turns)
+	if usage != nil {
+		fmt.Fprintf(&b, "tokens:  %d in · %d out\n", usage.PromptTokens, usage.CompletionTokens)
+	}
+	fmt.Fprintf(&b, "\n---\n\n")
+	b.WriteString(strings.TrimRight(response, "\n"))
+	b.WriteString("\n")
+	fmt.Print(b.String())
 }
 
 // printTextResponse emits the final text-mode response, rendering markdown to
