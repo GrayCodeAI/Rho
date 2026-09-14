@@ -91,7 +91,7 @@ func shrinkCatalog(raw []byte, lintOnly bool) (interface{}, bool) {
 				_ = json.Unmarshal(n, &name)
 			}
 		}
-		descB, descA := countDescBytes(fnRaw), len(valueOf(fnMap["description"]))
+		descB, descA := countDescBytes(fnRaw), countDescBytes(fn)
 		stats = append(stats, ToolShrinkStats{Name: name, Before: before, After: after, DescBefore: descB, DescAfter: descA})
 		if after < before {
 			changed = true
@@ -228,11 +228,4 @@ func countDescBytes(fnRaw json.RawMessage) int {
 		return len(fn.Description)
 	}
 	return 0
-}
-
-func valueOf(raw json.RawMessage) string {
-	if raw == nil {
-		return ""
-	}
-	return string(raw)
 }

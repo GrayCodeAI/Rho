@@ -40,18 +40,20 @@ func ChunkCode(source string, opts ChunkOptions) []CodeChunk {
 	lines := strings.Split(source, "\n")
 	var chunks []CodeChunk
 	start := 0
-	cur := 0
-	for i, line := range lines {
-		lineTokens := EstimateTokensFast(line) + 1
-		if cur > 0 && cur+lineTokens > maxTokens {
-			chunks = append(chunks, makeChunk(lines, start, i))
-			start = i
-			cur = 0
+	for start < len(lines) {
+		// Grow the chunk one line at a time until adding the next line would
+		// exceed the budget. Token counts are measured on the accumulated
+		// content so the reported count matches the budget check.
+		end := start + 1
+		for end < len(lines) {
+			candidate := strings.Join(lines[start:end+1], "\n")
+			if EstimateTokensFast(candidate) > maxTokens {
+				break
+			}
+			end++
 		}
-		cur += lineTokens
-	}
-	if start < len(lines) {
-		chunks = append(chunks, makeChunk(lines, start, len(lines)))
+		chunks = append(chunks, makeChunk(lines, start, end))
+		start = end
 	}
 	return chunks
 }
