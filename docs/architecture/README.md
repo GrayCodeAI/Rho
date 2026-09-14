@@ -21,7 +21,7 @@ Documents:
 - `tasks.md` - historical implementation checklist from the initial architecture pass (superseded by the definition-of-done doc; kept for record)
 - `adr/` - accepted architecture decision records, e.g. exceptions to the dependency rules above
   - `ADR-0003-grok-behavioral-port-go-multirepo.md` - Year 0 Grok behavioral port keeps Go multi-repo
-- Related active execution track: `docs/plans/YEAR-0-ACTIVE.md`
+- Related (historical) execution track: `docs/plans/YEAR-0-ACTIVE.md`
 
 Core rule:
 
