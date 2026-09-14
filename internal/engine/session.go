@@ -55,7 +55,7 @@ type SnapshotTracker interface {
 //	llm            *ChatService        (Phase 1: LLM transport)
 //	perms          *PermissionService  (Phase 2: safety/approval)
 //	life           *LifecycleService   (Phase 3: self-improvement loop)
-//	memory         *MemoryService      (Phase 4: harrier bridge)
+//	memory         *MemoryService      (Phase 4: memory layer)
 //	persist        *PersistenceService (Phase 5: conversation store)
 //	tools          *ToolService        (Phase 6: tool execution)
 //

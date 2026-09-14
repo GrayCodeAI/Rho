@@ -402,7 +402,7 @@ func sectionDisplayName(name string) string {
 	case "system_prompt":
 		return "System Prompt"
 	case "memory":
-		return "Memory (harrier)"
+		return "Memory"
 	case "conversation":
 		return "Conversation"
 	case "tool_results":

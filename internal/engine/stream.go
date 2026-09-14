@@ -1003,7 +1003,7 @@ func (s *Session) agentLoop(ctx context.Context, ch chan<- StreamEvent) {
 			}
 		}
 
-		// Auto-remember: save conversation context and insights to harrier after each turn
+		// Auto-remember: save conversation context and insights to memory after each turn
 		if s.MemorySvc().Memory() != nil {
 			userMsg := ""
 			assistantMsg := ""

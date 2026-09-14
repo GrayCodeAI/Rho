@@ -84,7 +84,7 @@ func (mm *MemoryManager) Recall(query string, tokenBudget int) (string, error) {
 }
 
 // Remember routes content to the appropriate subsystem based on category.
-// Implements engine.MemoryRecaller. The ctx bounds the harrier network path.
+// Implements engine.MemoryRecaller.
 func (mm *MemoryManager) Remember(ctx context.Context, content, category string) error {
 	switch category {
 	case "guideline", "lesson":
