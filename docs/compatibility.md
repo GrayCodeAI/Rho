@@ -70,9 +70,8 @@ It runs on:
 
 ## Pin freshness (advisory)
 
-Separate from the matrix above: `hawk`'s own `go.mod` directly pins
-shared leaf dependencies (currently `falcon` is tracked), and several sibling-repository
-consumers (`merlin`/Merlin, `kestrel`/Kestrel, ...) pin the *same*
+Separate from the matrix above: `hawk`'s own `go.mod` directly pins shared
+leaf dependencies, and sibling-repository consumers can pin the *same*
 dependencies independently in their own `go.mod`. Go's minimal version
 selection means whatever `hawk` pins wins in `hawk`'s own build — but if a
 consumer's own pin is older, that consumer's CI has never actually tested the
