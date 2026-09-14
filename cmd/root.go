@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	hawkconfig "github.com/GrayCodeAI/hawk/internal/config"
@@ -292,6 +293,131 @@ func init() {
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(bugReportCmd)
 	completionCmd.AddCommand(completionInstallCmd)
+}
+
+// Command group IDs used to organize the root help output. Grouping is
+// presentation-only: command names, flags, and behavior are unchanged.
+const (
+	groupCore      = "core"
+	groupWorkflow  = "workflow"
+	groupContext   = "context"
+	groupConfigure = "configure"
+	groupDiagnose  = "diagnose"
+	groupReference = "reference"
+)
+
+// groupRootCommands assigns every root command to a help group and registers
+// the groups in display order. It is idempotent so it can run from both the
+// production entrypoint and tests. Unknown commands fall into "reference" so a
+// newly added command is never hidden from help.
+var groupRegistration sync.Once
+
+func groupRootCommands() {
+	groupRegistration.Do(func() {
+		rootCmd.AddGroup(
+			&cobra.Group{ID: groupCore, Title: "Core:"},
+			&cobra.Group{ID: groupWorkflow, Title: "Workflow:"},
+			&cobra.Group{ID: groupContext, Title: "Context & memory:"},
+			&cobra.Group{ID: groupConfigure, Title: "Configure:"},
+			&cobra.Group{ID: groupDiagnose, Title: "Diagnose:"},
+			&cobra.Group{ID: groupReference, Title: "Reference:"},
+		)
+	})
+
+	groups := map[string]string{
+		// Core: the primary product surfaces.
+		"exec":    groupCore,
+		"daemon":  groupCore,
+		"agent":   groupCore,
+		"mission": groupCore,
+		"acp":     groupCore,
+		"bg":      groupCore,
+		"attach":  groupCore,
+		"setup":   groupCore,
+		"init":    groupCore,
+
+		// Workflow: review, plan, verify, and task orchestration.
+		"plan":       groupWorkflow,
+		"review":     groupWorkflow,
+		"verify":     groupWorkflow,
+		"harness":    groupWorkflow,
+		"eval":       groupWorkflow,
+		"issue":      groupWorkflow,
+		"pr":         groupWorkflow,
+		"checkpoint": groupWorkflow,
+		"resume":     groupWorkflow,
+		"recover":    groupWorkflow,
+		"replay":     groupWorkflow,
+		"tape":       groupWorkflow,
+
+		// Context & memory: codebase context and learned state.
+		"context":     groupContext,
+		"fingerprint": groupContext,
+		"search":      groupContext,
+		"learn":       groupContext,
+		"taste":       groupContext,
+		"sessions":    groupContext,
+		"snapshot":    groupContext,
+		"share":       groupContext,
+
+		// Configure: settings, credentials, integrations.
+		"config":      groupConfigure,
+		"credentials": groupConfigure,
+		"models":      groupConfigure,
+		"mcp":         groupConfigure,
+		"plugin":      groupConfigure,
+		"skills":      groupConfigure,
+		"toolset":     groupConfigure,
+		"tools":       groupConfigure,
+		"permissions": groupConfigure,
+		"rules":       groupConfigure,
+		"trust":       groupConfigure,
+		"features":    groupConfigure,
+		"cloud":       groupConfigure,
+		"governance":  groupConfigure,
+
+		// Diagnose: health, readiness, cost, and safety.
+		"doctor":      groupDiagnose,
+		"preflight":   groupDiagnose,
+		"path":        groupDiagnose,
+		"status":      groupDiagnose,
+		"cost":        groupDiagnose,
+		"usage":       groupDiagnose,
+		"stats":       groupDiagnose,
+		"audit":       groupDiagnose,
+		"securitylog": groupDiagnose,
+		"ecosystem":   groupDiagnose,
+		"bug-report":  groupDiagnose,
+
+		// Reference: lookup and misc utilities.
+		"version":      groupReference,
+		"completion":   groupReference,
+		"manpage":      groupReference,
+		"schema":       groupReference,
+		"update":       groupReference,
+		"feedback":     groupReference,
+		"sandbox":      groupReference,
+		"graph":        groupReference,
+		"swift-report": groupReference,
+		"history":      groupReference,
+		"research":     groupReference,
+	}
+
+	for _, cmd := range rootCmd.Commands() {
+		if cmd.GroupID != "" {
+			continue
+		}
+		// Cobra's built-in help command is intentionally left ungrouped so it
+		// stays under "Additional Commands".
+		if cmd.Name() == "help" {
+			continue
+		}
+		if g, ok := groups[cmd.Name()]; ok {
+			cmd.GroupID = g
+		} else {
+			cmd.GroupID = groupReference
+		}
+	}
 }
 
 // confirmDangerousSkipPermissions enforces a safety guard when
@@ -913,6 +1039,9 @@ func Execute() error {
 	// scripts can safely pipe data and diagnostics never corrupt structured
 	// output.
 	setCommandWriters(rootCmd)
+	// Assign help groups after every package init() has registered its
+	// command, so the grouping sees the complete command tree.
+	groupRootCommands()
 	return rootCmd.Execute()
 }
 

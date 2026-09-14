@@ -23,10 +23,10 @@ import (
 func newExecutionGraphCmd() *cobra.Command {
 	graphCmd := &cobra.Command{
 		Use:   "graph",
-		Short: "Merlin Hawk's portable execution graph",
+		Short: "Export a portable execution graph",
 		Long: `Project Hawk-owned sessions, task requests, structured tasks, runtime tasks,
-tool calls, policy observations, verification results, and explicit Swift
-checkpoint links into the shared graph contract.
+tool calls, policy observations, verification results, and explicit checkpoint
+links into the shared graph contract.
 
 This command is read-only. Existing runtime components remain the source of
 truth for scheduling, tools, policy, verification, persistence, and tracing.`,
