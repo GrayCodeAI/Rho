@@ -2,9 +2,16 @@ package cmd
 
 import "testing"
 
+// These tests call ApplyTheme, which mutates package-level color vars. Snapshot
+// and restore them with restoreThemeGlobals so a palette swap cannot leak into
+// unrelated tests (e.g. TestAdaptiveNeutralsPreserveDarkAppearance). Calling
+// ApplyTheme("dark") as cleanup is not equivalent: it writes the dark palette's
+// values, which differ from the init-time defaults the adaptive test locks.
+
 func TestApplyThemeTauEnablesMinimalChrome(t *testing.T) {
+	restoreThemeGlobals(t)
 	prev := minimalChrome
-	t.Cleanup(func() { ApplyTheme("dark"); minimalChrome = prev })
+	t.Cleanup(func() { minimalChrome = prev })
 
 	ApplyTheme("tau")
 	if !minimalChrome {
@@ -20,8 +27,9 @@ func TestApplyThemeTauEnablesMinimalChrome(t *testing.T) {
 }
 
 func TestApplyThemeDarkUsesBoxChrome(t *testing.T) {
+	restoreThemeGlobals(t)
 	prev := minimalChrome
-	t.Cleanup(func() { ApplyTheme("dark"); minimalChrome = prev })
+	t.Cleanup(func() { minimalChrome = prev })
 
 	ApplyTheme("dark")
 	if minimalChrome {
@@ -34,6 +42,7 @@ func TestApplyThemeDarkUsesBoxChrome(t *testing.T) {
 }
 
 func TestApplyThemeUnknownIsNoop(t *testing.T) {
+	restoreThemeGlobals(t)
 	ApplyTheme("dark")
 	before := minimalChrome
 	ApplyTheme("does-not-exist")
