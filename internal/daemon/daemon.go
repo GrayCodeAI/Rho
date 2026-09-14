@@ -125,6 +125,9 @@ type Server struct {
 	// POST /v1/cancel to abort an in-flight generation (H10).
 	cancelMu sync.Mutex
 	cancels  map[string]*cancelEntry
+	// reviewWG tracks in-flight `rho review run` subprocesses spawned by
+	// POST /v1/review so Stop can wait for them.
+	reviewWG sync.WaitGroup
 	// General per-IP token bucket for non-chat API routes.
 	apiLimiter *ipLimiter
 	// Per-IP token bucket for /v1/chat generations (heavier, so lower rate).
@@ -413,6 +416,16 @@ func (s *Server) Stop(ctx context.Context) error {
 	}
 	if s.securityLog != nil {
 		_ = s.securityLog.Close()
+	}
+	// Wait for in-flight review subprocesses, bounded by the caller's context.
+	reviewsDone := make(chan struct{})
+	go func() {
+		s.reviewWG.Wait()
+		close(reviewsDone)
+	}()
+	select {
+	case <-reviewsDone:
+	case <-ctx.Done():
 	}
 	_ = s.removePIDFile()
 	return s.server.Shutdown(ctx)
