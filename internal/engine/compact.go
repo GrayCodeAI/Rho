@@ -181,14 +181,16 @@ func (s *Session) generateSummary(ctx context.Context, raw []types.EyrieMessage)
 	targetBudget := 1000 // Keep summary under 1K tokens
 	compressed, stats := token.Compress(conversationText, targetBudget)
 	s.recordCompressionObservation(conversationText, "context-compaction", stats)
-	reductionRatio := float64(stats.FinalTokens) / float64(stats.OriginalTokens)
 	// Only accept the token-engine path when the reduction is structural — a
 	// budget-enforcer hard truncation (HardTruncated) would return the head
 	// of the conversation cut mid-stream, which is not a summary.
-	if reductionRatio < 0.5 && stats.OriginalTokens > targetBudget*2 && !stats.HardTruncated() {
-		// The token engine achieved >50% reduction, use compressed output directly
-		// Extract key facts from compressed text for summary format
-		return extractSummaryFromCompressed(compressed)
+	if stats.OriginalTokens > targetBudget*2 && !stats.HardTruncated() {
+		reductionRatio := float64(stats.FinalTokens) / float64(stats.OriginalTokens)
+		if reductionRatio < 0.5 {
+			// The token engine achieved >50% reduction; use compressed output
+			// directly and extract key facts for the summary format.
+			return extractSummaryFromCompressed(compressed)
+		}
 	}
 
 	// Fall back to LLM-based summarization if token compression is insufficient
