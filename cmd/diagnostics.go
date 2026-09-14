@@ -13,7 +13,6 @@ import (
 	"time"
 
 	hawkconfig "github.com/GrayCodeAI/hawk/internal/config"
-	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/resilience/health"
 	"github.com/GrayCodeAI/hawk/internal/session"
 	"github.com/GrayCodeAI/hawk/internal/storage"
@@ -146,22 +145,6 @@ func healthCheckReport(settings hawkconfig.Settings, provider string) string {
 		}
 		return health.Check{Name: "config", Status: health.Degraded, Message: result.Error()}
 	})
-
-	// Harrier memory bridge check
-	bridge := memory.NewHarrierBridge()
-	if bridge.Ready() {
-		registry.Register("harrier", func(ctx context.Context) health.Check {
-			_, _, err := bridge.SearchByType("convention", 1)
-			if err != nil {
-				return health.Check{Name: "harrier", Status: health.Unhealthy, Message: "Harrier bridge initialized but query failed"}
-			}
-			return health.Check{Name: "harrier", Status: health.Healthy, Message: "Harrier memory bridge operational"}
-		})
-	} else {
-		registry.Register("harrier", func(ctx context.Context) health.Check {
-			return health.Check{Name: "harrier", Status: health.Degraded, Message: "Harrier not initialized (~/.harrier/data/ not writable)"}
-		})
-	}
 
 	// Lefthook installation check
 	registry.Register("lefthook", func(ctx context.Context) health.Check {

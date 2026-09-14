@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/GrayCodeAI/hawk/internal/home"
-	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/provider/gateway"
 	"github.com/GrayCodeAI/hawk/internal/theme"
 	"github.com/GrayCodeAI/hawk/internal/token"
@@ -173,21 +172,6 @@ func EvaluateDeveloperPath(ctx context.Context) DeveloperPathReport {
 			Detail:   "Preflight not ready — see hawk preflight",
 			FixHint:  "Complete /config (credentials + model)",
 			Blocking: true,
-		})
-	}
-
-	bridge := memory.NewHarrierBridge()
-	if bridge.Ready() {
-		first := strings.Split(memory.HarrierStatus(), "\n")[0]
-		checks = append(checks, PathCheck{
-			Section: "Ecosystem", Name: "harrier", Status: PathPass,
-			Detail: first + " (optional persistent memory)",
-		})
-	} else {
-		checks = append(checks, PathCheck{
-			Section: "Ecosystem", Name: "harrier", Status: PathWarn,
-			Detail:  "Not initialized — memory ops skipped",
-			FixHint: "Ensure ~/.harrier/data/ is writable for cross-session memory",
 		})
 	}
 

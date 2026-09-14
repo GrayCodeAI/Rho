@@ -11,8 +11,6 @@ import (
 
 	"github.com/GrayCodeAI/hawk/internal/engine/diff"
 	"github.com/GrayCodeAI/hawk/internal/hooks"
-	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
-	"github.com/GrayCodeAI/hawk/internal/intelligence/repomap"
 	"github.com/GrayCodeAI/hawk/internal/observability/metrics"
 	"github.com/GrayCodeAI/hawk/internal/observability/oteltrace"
 	"github.com/GrayCodeAI/hawk/internal/prompts"
@@ -419,10 +417,6 @@ func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, overrid
 			return resp.Content, nil
 		}
 	}
-	var harrier *memory.HarrierBridge
-	if s.deps.memory != nil {
-		harrier = s.deps.memory.Harrier()
-	}
 	var available []tool.Tool
 	if s.registry != nil {
 		// Full primary set so ToolSearch can discover lazy/optional tools.
@@ -432,52 +426,16 @@ func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, overrid
 		AgentSpawnFn:        s.deps.agentSpawn,
 		AskUserFn:           s.deps.askUser,
 		CommitMessageChatFn: commitChat,
-		HarrierBridge:       harrier,
-		// Semantic code search backed by the harrier code-chunk index. Wiring the
-		// closures here makes CodeSearchTool functional in production (the
-		// interface was declared but never bound). Refresh rebuilds only
-		// added/changed files via content-hash staleness.
-		CodeSearchFn: func(cctx context.Context, query string, limit int) ([]tool.CodeSearchResult, error) {
-			if harrier == nil {
-				return nil, fmt.Errorf("code search unavailable: no memory bridge")
-			}
-			results, err := harrier.SearchCode(query, limit)
-			if err != nil {
-				return nil, err
-			}
-			out := make([]tool.CodeSearchResult, 0, len(results))
-			for _, r := range results {
-				out = append(out, tool.CodeSearchResult{
-					Path: r.Path, StartLine: r.StartLine, EndLine: r.EndLine,
-					Content: r.Content, Symbol: r.Symbol, Language: tool.LanguageForFile(r.Path), Score: r.Score,
-				})
-			}
-			return out, nil
-		},
-		RefreshCodeIndexFn: func(cctx context.Context) error {
-			if harrier == nil {
-				return fmt.Errorf("code index refresh unavailable: no memory bridge")
-			}
-			dir := s.WorkingDir()
-			if dir == "" {
-				return fmt.Errorf("code index refresh unavailable: no working directory")
-			}
-			if err := harrier.InitCodeIndex(); err != nil {
-				return err
-			}
-			_, _, _, err := repomap.IncrementalReindex(dir, nil, &harrierCodeIndexer{harrier})
-			return err
-		},
-		SpecSlugGet:        func() string { return s.deps.permissions.SpecSlug() },
-		SpecSlugSet:        func(slug string) { s.deps.permissions.SetSpecSlug(slug) },
-		AllowedDirectories: s.deps.permissions.AllowedDirs(),
-		BackgroundManager:  s.EnsureBackgroundManager(),
-		ReadOnlyBash:       s.ReadOnlyBash(),
-		WorkingDir:         s.WorkingDir(),
-		AvailableTools:     available,
-		Registry:           s.registry,
-		AutoCommit:         s.AutoCommit(),
-		TaskExecutor:       s.deps.taskExec,
+		SpecSlugGet:         func() string { return s.deps.permissions.SpecSlug() },
+		SpecSlugSet:         func(slug string) { s.deps.permissions.SetSpecSlug(slug) },
+		AllowedDirectories:  s.deps.permissions.AllowedDirs(),
+		BackgroundManager:   s.EnsureBackgroundManager(),
+		ReadOnlyBash:        s.ReadOnlyBash(),
+		WorkingDir:          s.WorkingDir(),
+		AvailableTools:      available,
+		Registry:            s.registry,
+		AutoCommit:          s.AutoCommit(),
+		TaskExecutor:        s.deps.taskExec,
 	})
 	t := override
 	if t == nil && s.registry != nil {

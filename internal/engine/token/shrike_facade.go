@@ -7,8 +7,8 @@ import (
 )
 
 // Stats is the compression result consumed by Hawk's runtime observations.
-// The alias preserves the external shrike schema while keeping Shrike imports inside
-// this package.
+// The alias preserves the local token engine schema while keeping token imports
+// inside this package.
 type Stats = hawktoken.Stats
 
 // UsageTracker and UsageLimits expose the session budget API through Hawk's

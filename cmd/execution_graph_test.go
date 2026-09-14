@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,18 +15,6 @@ import (
 	"github.com/GrayCodeAI/hawk/internal/graphjournal"
 	"github.com/GrayCodeAI/hawk/internal/session"
 )
-
-type stubSwiftCorrelationResolver struct {
-	correlation swiftCorrelation
-	err         error
-}
-
-func (s stubSwiftCorrelationResolver) Resolve(
-	context.Context,
-	string,
-) (swiftCorrelation, error) {
-	return s.correlation, s.err
-}
 
 func TestExecutionGraphCommandIsVisible(t *testing.T) {
 	t.Parallel()
@@ -211,8 +197,6 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 	command.SetArgs([]string{
 		"export",
 		saved.ID,
-		"--swift-checkpoint",
-		"abc123def456",
 	})
 	if err := command.Execute(); err != nil {
 		t.Fatalf("graph export command error = %v", err)
@@ -254,105 +238,6 @@ func TestExecutionGraphExportCommand(t *testing.T) {
 	}
 	if !hasExportNodePrefix(export, "shrike/compression/") {
 		t.Fatal("graph export omitted Shrike compression operation")
-	}
-}
-
-func TestBuildExecutionGraphExportComposesAuthoritativeSwiftCorrelation(t *testing.T) {
-	t.Setenv("HAWK_STATE_DIR", t.TempDir())
-
-	now := time.Date(2026, time.July, 25, 6, 0, 0, 0, time.UTC)
-	saved := &session.Session{
-		ID:        "hawk-correlated-session",
-		CWD:       "/workspace/hawk",
-		CreatedAt: now.Add(-time.Hour),
-		UpdatedAt: now,
-	}
-	if err := session.Save(saved); err != nil {
-		t.Fatalf("session.Save() error = %v", err)
-	}
-	resolver := stubSwiftCorrelationResolver{correlation: swiftCorrelation{
-		SchemaVersion:            swiftCorrelationSchemaVersion,
-		HawkSessionID:            saved.ID,
-		CheckpointLookupComplete: true,
-		Matches: []swiftCorrelationMatch{
-			{
-				SwiftSessionID: "swift-beta",
-				CheckpointIDs:  []string{"bbbbbbbbbbbb"},
-				StartedAt:      now.Add(-30 * time.Minute),
-			},
-			{
-				SwiftSessionID: "swift-alpha",
-				CheckpointIDs:  []string{"aaaaaaaaaaaa", "abc123def456"},
-				StartedAt:      now.Add(-40 * time.Minute),
-			},
-		},
-	}}
-
-	export, err := buildExecutionGraphExportWithSwift(
-		[]string{saved.ID},
-		"",
-		[]string{"abc123def456"},
-		now,
-		resolver,
-	)
-	if err != nil {
-		t.Fatalf("buildExecutionGraphExportWithSwift() error = %v", err)
-	}
-	for _, nodeID := range []string{
-		"swift/session/swift-alpha",
-		"swift/session/swift-beta",
-		"swift/checkpoint/aaaaaaaaaaaa",
-		"swift/checkpoint/abc123def456",
-		"swift/checkpoint/bbbbbbbbbbbb",
-	} {
-		if findExportNode(export, nodeID) == nil {
-			t.Fatalf("authoritative Swift node %q was not exported", nodeID)
-		}
-	}
-	assertExportEdge(
-		t,
-		export,
-		"hawk/session/"+saved.ID,
-		"swift/session/swift-alpha",
-		graphcontracts.EdgeReferences,
-	)
-	assertExportEdge(
-		t,
-		export,
-		"swift/session/swift-alpha",
-		"swift/checkpoint/abc123def456",
-		graphcontracts.EdgeProduced,
-	)
-}
-
-func TestBuildExecutionGraphExportSwiftLookupFailureIsFailOpen(t *testing.T) {
-	t.Setenv("HAWK_STATE_DIR", t.TempDir())
-
-	now := time.Date(2026, time.July, 25, 6, 30, 0, 0, time.UTC)
-	saved := &session.Session{
-		ID:        "hawk-swift-fail-open",
-		CWD:       "/workspace/hawk",
-		CreatedAt: now.Add(-time.Hour),
-		UpdatedAt: now,
-	}
-	if err := session.Save(saved); err != nil {
-		t.Fatalf("session.Save() error = %v", err)
-	}
-	export, err := buildExecutionGraphExportWithSwift(
-		[]string{saved.ID},
-		"",
-		[]string{"abc123def456"},
-		now,
-		stubSwiftCorrelationResolver{err: errors.New("Swift is unavailable")},
-	)
-	if err != nil {
-		t.Fatalf("Swift lookup should not block graph export: %v", err)
-	}
-	if findExportNode(export, "swift/checkpoint/abc123def456") == nil {
-		t.Fatal("explicit checkpoint reference was lost when automatic lookup failed")
-	}
-	if findExportNode(export, "swift/session/swift-untrusted") != nil {
-		t.Fatal("failed lookup produced a speculative Swift session")
 	}
 }
 

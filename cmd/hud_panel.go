@@ -158,13 +158,10 @@ func renderHUDMemorySection(data HUDData, width int) string {
 // collectHUDData assembles a HUD snapshot from the chat model's available state.
 // Mission, agent, and message-bus data are populated when a mission is attached
 // to the session; otherwise the HUD reports an idle state. Memory stats are read
-// from the session's memory bridge when available.
+// from the session's memory subsystem when available.
 func (m *chatModel) collectHUDData() HUDData {
 	data := HUDData{
 		MissionStatus: "idle",
-	}
-	if m.session != nil && m.session.MemorySvc().Harrier() != nil && m.session.MemorySvc().Harrier().Ready() {
-		data.MemoryReady = true
 	}
 	return data
 }

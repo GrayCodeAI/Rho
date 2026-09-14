@@ -10,7 +10,6 @@ import (
 	"github.com/GrayCodeAI/hawk/internal/token"
 	"github.com/GrayCodeAI/hawk/internal/tool"
 	"github.com/GrayCodeAI/hawk/internal/types"
-	shrike "github.com/GrayCodeAI/shrike"
 )
 
 type graphVerifyTool struct{}
@@ -72,7 +71,7 @@ func TestShrikeCompressionObservationIsPrivacySafe(t *testing.T) {
 	sess.recordShrikeCompressionObservation(
 		"private conversation with sk-secret",
 		"context-compaction",
-		shrike.Stats{OriginalTokens: 100, FinalTokens: 40, TokensSaved: 60, Model: "private-model"},
+		token.Stats{OriginalTokens: 100, FinalTokens: 40, TokensSaved: 60, Model: "private-model"},
 	)
 	entries, err := graphjournal.Load("shrike-runtime-session")
 	if err != nil {
@@ -217,17 +216,17 @@ func TestDrainAlertsSurfacesHourlyWarning(t *testing.T) {
 	if !token.ShrikeAvailable() {
 		t.Skip("shrike engine is the build-harness stub; skipping engine-dependent test")
 	}
-	tracker := shrike.NewUsageTracker()
-	tracker.SetLimits(shrike.UsageLimits{
+	tracker := token.NewUsageTracker()
+	tracker.SetLimits(token.UsageLimits{
 		HourlyTokens:  100,
 		DailyTokens:   10_000,
 		SessionTokens: 10_000,
 		CostUSD:       10,
 	})
-	tracker.Record(55, 0, "provider", "model")
+	tracker.Record(80, 0, "provider", "model")
 	alerts := tracker.DrainAlerts()
 	if len(alerts) == 0 {
-		t.Fatal("expected threshold alert after crossing 50%")
+		t.Fatal("expected threshold alert after crossing 75%")
 	}
 	if len(tracker.DrainAlerts()) != 0 {
 		t.Fatal("expected DrainAlerts to clear pending alerts")

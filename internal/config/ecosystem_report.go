@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/theme"
 	"github.com/GrayCodeAI/hawk/internal/token"
 )
 
 // EcosystemReport is the structured view of the ecosystem panel.
 type EcosystemReport struct {
-	Eyrie   EcosystemEyrie   `json:"eyrie"`
-	Harrier EcosystemHarrier `json:"harrier"`
-	Shrike  EcosystemShrike  `json:"shrike"`
+	Eyrie  EcosystemEyrie  `json:"eyrie"`
+	Shrike EcosystemShrike `json:"shrike"`
 }
 
 type EcosystemEyrie struct {
@@ -24,11 +22,6 @@ type EcosystemEyrie struct {
 	Provider      string `json:"provider,omitempty"`
 	RoutingSource string `json:"routing_source,omitempty"`
 	RoutingStages int    `json:"routing_stages,omitempty"`
-}
-
-type EcosystemHarrier struct {
-	Ready  bool   `json:"ready"`
-	Status string `json:"status,omitempty"`
 }
 
 type EcosystemShrike struct {
@@ -54,14 +47,6 @@ func BuildEcosystemReport(ctx context.Context, provider, model string) Ecosystem
 		r.Eyrie.RoutingStages = dep.RoutingStages
 	}
 
-	// harrier
-	bridge := memory.NewHarrierBridge()
-	r.Harrier.Ready = bridge.Available()
-	if r.Harrier.Ready {
-		first := strings.Split(memory.HarrierStatus(), "\n")[0]
-		r.Harrier.Status = first
-	}
-
 	// shrike
 	r.Shrike.Embedded = token.ShrikeAvailable()
 	r.Shrike.SampleTokens = token.CountTokensFast("hawk context compression pipeline")
@@ -69,10 +54,10 @@ func BuildEcosystemReport(ctx context.Context, provider, model string) Ecosystem
 	return r
 }
 
-// FormatEcosystemPanel summarizes eyrie, harrier, and shrike integration for doctor and status output.
+// FormatEcosystemPanel summarizes eyrie and shrike integration for doctor and status output.
 func FormatEcosystemPanel(ctx context.Context, provider, model string) string {
 	var b strings.Builder
-	b.WriteString(theme.Tint("Ecosystem (eyrie · harrier · shrike):", theme.ReportInfo) + "\n")
+	b.WriteString(theme.Tint("Ecosystem (eyrie · shrike):", theme.ReportInfo) + "\n")
 
 	// eyrie — LLM provider layer
 	cat := CatalogHealthReport(ctx)
@@ -99,15 +84,6 @@ func FormatEcosystemPanel(ctx context.Context, provider, model string) string {
 		}
 	}
 	b.WriteString(eyrieLine + "\n")
-
-	// harrier — persistent memory graph
-	bridge := memory.NewHarrierBridge()
-	if bridge.Available() {
-		first := strings.Split(memory.HarrierStatus(), "\n")[0]
-		b.WriteString("  " + theme.Tint("harrier:", theme.ReportMuted) + " " + theme.Tint(first, theme.ReportInfo) + " · " + theme.Tint("bridge ready", theme.ReportSuccess) + "\n")
-	} else {
-		b.WriteString("  " + theme.Tint("harrier:", theme.ReportMuted) + " " + theme.Tint("unavailable", theme.ReportWarn) + " · " + theme.Tint("memory ops skipped (~/.harrier/data/)", theme.ReportWarn) + "\n")
-	}
 
 	// shrike — token counting and context compression (embedded only when a
 	// real shrike engine is linked; the build-harness stub reports 0 tokens).

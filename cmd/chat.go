@@ -31,7 +31,6 @@ import (
 	"github.com/GrayCodeAI/hawk/internal/engine"
 	"github.com/GrayCodeAI/hawk/internal/feature/shellmode"
 	"github.com/GrayCodeAI/hawk/internal/feature/taste"
-	"github.com/GrayCodeAI/hawk/internal/intelligence/memory"
 	"github.com/GrayCodeAI/hawk/internal/intelligence/repomap"
 	"github.com/GrayCodeAI/hawk/internal/plugin"
 	"github.com/GrayCodeAI/hawk/internal/session"
@@ -282,14 +281,6 @@ func newChatModelWithRegistry(ref *progRef, systemPrompt string, settings hawkco
 		_ = wal.AppendMeta(effectiveModel, effectiveProvider, "")
 	}
 	startup.EndPhase("newChatModel:wal")
-
-	// Warm code index in background so first CodeSearch is fast
-	go func() {
-		if bridge := memory.NewHarrierBridge(); bridge != nil && bridge.Ready() {
-			_ = bridge.InitCodeIndex()
-			bridge.Close()
-		}
-	}()
 
 	// Prefetch live models for the active provider so footer ctx/pricing stay current.
 	go func() {

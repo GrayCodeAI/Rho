@@ -419,23 +419,15 @@ func configureSessionHeavy(sess *engine.Session) {
 		sess.SetSnapshots(snap)
 	}
 
-	// Memory initialization touches persisted state and optional bridges.
+	// Memory initialization touches persisted local state.
 	enhancedMem := memory.NewEnhancedMemoryManager(cwd)
-	if enhancedMem.Harrier.Ready() {
-		// Periodic harrier snapshots only for long-lived sessions — short-lived
-		// diagnostic bridges skip scheduling entirely.
-		enhancedMem.Harrier.EnsureBackups()
-
-		sess.MemorySvc().SetMemory(enhancedMem)
-		sess.MemorySvc().SetHarrier(enhancedMem.Harrier)
-		sess.MemorySvc().SetEnhanced(enhancedMem)
-		sess.ConfigureContextGraphObservation(cwd)
-		// Use a real unique session ID (genID) rather than a fabricated
-		// "session_<nanos>" placeholder — the persist ID may not be assigned
-		// yet at this point in startup, but it must still be collision-safe
-		// for the memory manager (LOW finding: fabricated session IDs).
-		enhancedMem.StartSession(genID())
-	}
+	sess.MemorySvc().SetMemory(enhancedMem)
+	sess.MemorySvc().SetEnhanced(enhancedMem)
+	// Use a real unique session ID (genID) rather than a fabricated
+	// "session_<nanos>" placeholder — the persist ID may not be assigned
+	// yet at this point in startup, but it must still be collision-safe
+	// for the memory manager (LOW finding: fabricated session IDs).
+	enhancedMem.StartSession(genID())
 }
 
 // bindChatSession wires TUI-only session metadata (persist id, compaction callbacks).
