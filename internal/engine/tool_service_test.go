@@ -80,11 +80,13 @@ func TestDefaultToolPipelineIsEmptyPassThrough(t *testing.T) {
 func TestToolServiceSemanticIndexSearchesWorkingDir(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "auth.go"), []byte(
-		"package auth\n\nfunc ValidateToken(token string) bool { return token != \"\" }\n"), 0o644); err != nil {
+		"package auth\n\nfunc ValidateToken(token string) bool { return token != \"\" }\n",
+	), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "unrelated.go"), []byte(
-		"package other\n\nfunc AddNumbers(a, b int) int { return a + b }\n"), 0o644); err != nil {
+		"package other\n\nfunc AddNumbers(a, b int) int { return a + b }\n",
+	), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
