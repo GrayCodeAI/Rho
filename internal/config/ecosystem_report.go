@@ -11,8 +11,8 @@ import (
 
 // EcosystemReport is the structured view of the ecosystem panel.
 type EcosystemReport struct {
-	Eyrie  EcosystemEyrie  `json:"eyrie"`
-	Shrike EcosystemShrike `json:"shrike"`
+	Eyrie EcosystemEyrie `json:"eyrie"`
+	Token EngineToken    `json:"token"`
 }
 
 type EcosystemEyrie struct {
@@ -24,7 +24,7 @@ type EcosystemEyrie struct {
 	RoutingStages int    `json:"routing_stages,omitempty"`
 }
 
-type EcosystemShrike struct {
+type EngineToken struct {
 	Embedded     bool `json:"embedded"`
 	SampleTokens int  `json:"sample_tokens"`
 }
@@ -47,17 +47,17 @@ func BuildEcosystemReport(ctx context.Context, provider, model string) Ecosystem
 		r.Eyrie.RoutingStages = dep.RoutingStages
 	}
 
-	// shrike
-	r.Shrike.Embedded = token.ShrikeAvailable()
-	r.Shrike.SampleTokens = token.CountTokensFast("hawk context compression pipeline")
+	// embedded token engine
+	r.Token.Embedded = token.ShrikeAvailable()
+	r.Token.SampleTokens = token.CountTokensFast("hawk context compression pipeline")
 
 	return r
 }
 
-// FormatEcosystemPanel summarizes eyrie and shrike integration for doctor and status output.
+// FormatEcosystemPanel summarizes eyrie and token-engine integration for doctor and status output.
 func FormatEcosystemPanel(ctx context.Context, provider, model string) string {
 	var b strings.Builder
-	b.WriteString(theme.Tint("Ecosystem (eyrie · shrike):", theme.ReportInfo) + "\n")
+	b.WriteString(theme.Tint("Ecosystem (eyrie · token engine):", theme.ReportInfo) + "\n")
 
 	// eyrie — LLM provider layer
 	cat := CatalogHealthReport(ctx)
@@ -85,13 +85,12 @@ func FormatEcosystemPanel(ctx context.Context, provider, model string) string {
 	}
 	b.WriteString(eyrieLine + "\n")
 
-	// shrike — token counting and context compression (embedded only when a
-	// real shrike engine is linked; the build-harness stub reports 0 tokens).
+	// Embedded token engine — token counting and context compression.
 	sample := token.CountTokensFast("hawk context compression pipeline")
 	if token.ShrikeAvailable() {
-		b.WriteString("  " + theme.Tint("shrike:", theme.ReportMuted) + " " + theme.Tint("embedded", theme.ReportInfo) + " · " + theme.Tint("token/compress pipeline OK", theme.ReportSuccess) + fmt.Sprintf(" (sample=%d tokens)", sample) + "\n")
+		b.WriteString("  " + theme.Tint("token:", theme.ReportMuted) + " " + theme.Tint("embedded", theme.ReportInfo) + " · " + theme.Tint("token/compress pipeline OK", theme.ReportSuccess) + fmt.Sprintf(" (sample=%d tokens)", sample) + "\n")
 	} else {
-		b.WriteString("  " + theme.Tint("shrike:", theme.ReportMuted) + " " + theme.Tint("unavailable (engine stub)", theme.ReportWarn) + " · " + theme.Tint("token/compress pipeline not linked", theme.ReportWarn) + fmt.Sprintf(" (sample=%d tokens)", sample) + "\n")
+		b.WriteString("  " + theme.Tint("token:", theme.ReportMuted) + " " + theme.Tint("unavailable", theme.ReportWarn) + " · " + theme.Tint("token/compress pipeline not linked", theme.ReportWarn) + fmt.Sprintf(" (sample=%d tokens)", sample) + "\n")
 	}
 	return strings.TrimRight(b.String(), "\n")
 }

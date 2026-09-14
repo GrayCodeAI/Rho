@@ -80,7 +80,7 @@ var allSlashCommands = []string{
 	"/image", "/reload-plugins", "/remote-env", "/rename", "/render", "/research", "/resume", "/retry", "/review", "/rewind",
 	"/run", "/btw", "/brainstorm", "/checkpoint", "/dream", "/away", "/investigate", "/search", "/security-review", "/session", "/share", "/skills", "/snapshot", "/soul", "/spec", "/stale", "/stats",
 	"/mouse", "/select", "/start", "/status", "/statusline", "/summary", "/tag", "/taste", "/tasks", "/test", "/theme", "/think", "/thinkback", "/thinkback-play", "/tokens", "/tools", "/trust", "/ultrareview", "/undo", "/upgrade", "/usage",
-	"/version", "/vibe", "/vim", "/voice", "/welcome", "/ecosystem", "/path", "/harrier",
+	"/version", "/vibe", "/vim", "/voice", "/welcome", "/ecosystem", "/path",
 	"/scroll-speed", "/scroll-invert", "/scroll-mode", "/terminal-setup", "/pager-config", "/prompt-queue",
 }
 
@@ -255,9 +255,8 @@ var slashDescriptions = map[string]string{
 	"/version":               "Show hawk version",
 	"/vim":                   "Toggle vim mode",
 	"/welcome":               "Re-print the welcome header",
-	"/ecosystem":             "Show eyrie, harrier, and shrike integration status",
+	"/ecosystem":             "Show eyrie and token-engine integration status",
 	"/path":                  "Developer path readiness (setup, security)",
-	"/harrier":               "Show harrier memory (use /harrier search <query> to search)",
 	"/cron":                  "Show scheduled jobs",
 	"/keybindings":           "Show keyboard shortcuts",
 	"/output-style":          "Change output style",

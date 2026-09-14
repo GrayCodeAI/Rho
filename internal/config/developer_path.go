@@ -177,7 +177,7 @@ func EvaluateDeveloperPath(ctx context.Context) DeveloperPathReport {
 
 	sample := token.CountTokensFast("hawk developer path readiness")
 	checks = append(checks, PathCheck{
-		Section: "Ecosystem", Name: "shrike", Status: PathPass,
+		Section: "Ecosystem", Name: "token", Status: PathPass,
 		Detail: fmt.Sprintf("Embedded token/compress pipeline OK (sample=%d tokens)", sample),
 	})
 
@@ -232,7 +232,7 @@ func pathStatusColor(s PathCheckStatus) color.Color {
 func FormatDeveloperPathReport(ctx context.Context) string {
 	r := EvaluateDeveloperPath(ctx)
 	var b strings.Builder
-	b.WriteString(theme.Tint("Developer path (hawk · eyrie · shrike · harrier)", theme.ReportInfo) + "\n\n")
+	b.WriteString(theme.Tint("Developer path (hawk · eyrie · token engine)", theme.ReportInfo) + "\n\n")
 
 	status := "NEEDS SETUP"
 	statusColor := theme.ReportWarn

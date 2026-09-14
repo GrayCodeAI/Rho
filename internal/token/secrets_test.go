@@ -96,7 +96,9 @@ func TestNewSecretDetectorIndependent(t *testing.T) {
 	if a == b {
 		t.Error("NewSecretDetector returned the same instance")
 	}
-	if DefaultSecretDetector() != DefaultSecretDetector() {
+	first := DefaultSecretDetector()
+	second := DefaultSecretDetector()
+	if first != second {
 		t.Error("DefaultSecretDetector should be a singleton")
 	}
 }

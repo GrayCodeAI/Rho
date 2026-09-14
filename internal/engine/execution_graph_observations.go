@@ -118,7 +118,7 @@ func (s *Session) SessionID() string {
 	return s.executionGraphSessionID()
 }
 
-func (s *Session) recordShrikeCompressionObservation(source, stage string, stats token.Stats) {
+func (s *Session) recordCompressionObservation(source, stage string, stats token.Stats) {
 	sessionID := s.executionGraphSessionID()
 	if sessionID == "" || stats.OriginalTokens <= 0 {
 		return
@@ -141,7 +141,7 @@ func (s *Session) recordShrikeCompressionObservation(source, stage string, stats
 	})
 	if err == nil {
 		err = graphjournal.AppendRuntimeGraph(
-			sessionID, "", stage, "shrike",
+			sessionID, "", stage, "token",
 			export.Nodes, export.Edges, export.Events, observedAt,
 		)
 	}
@@ -153,7 +153,7 @@ func (s *Session) recordShrikeCompressionObservation(source, stage string, stats
 	}
 }
 
-func (s *Session) recordShrikeRedactionObservation(source string, matchCount int, types map[string]int) {
+func (s *Session) recordRedactionObservation(source string, matchCount int, types map[string]int) {
 	sessionID := s.executionGraphSessionID()
 	if sessionID == "" || matchCount <= 0 {
 		return
@@ -179,7 +179,7 @@ func (s *Session) recordShrikeRedactionObservation(source string, matchCount int
 	})
 	if err == nil {
 		err = graphjournal.AppendRuntimeGraph(
-			sessionID, "", "response-redaction", "shrike",
+			sessionID, "", "response-redaction", "token",
 			export.Nodes, export.Edges, export.Events, observedAt,
 		)
 	}
@@ -191,7 +191,7 @@ func (s *Session) recordShrikeRedactionObservation(source string, matchCount int
 	}
 }
 
-func (s *Session) recordShrikeUsageBudgetObservation(
+func (s *Session) recordUsageBudgetObservation(
 	tokens int,
 	costUSD float64,
 	provider, model string,
@@ -199,7 +199,7 @@ func (s *Session) recordShrikeUsageBudgetObservation(
 	if s == nil || tokens <= 0 {
 		return
 	}
-	tracker := s.ensureShrikeUsageTracker()
+	tracker := s.ensureUsageTracker()
 	tracker.Record(tokens, costUSD, provider, model)
 	allowed, reason := tracker.CanProceed()
 	usage := tracker.GetUsage()
@@ -237,7 +237,7 @@ func (s *Session) recordShrikeUsageBudgetObservation(
 	})
 	if err == nil {
 		err = graphjournal.AppendRuntimeGraph(
-			sessionID, "", "usage-budget", "shrike",
+			sessionID, "", "usage-budget", "token",
 			export.Nodes, export.Edges, export.Events, observedAt,
 		)
 	}
@@ -249,22 +249,22 @@ func (s *Session) recordShrikeUsageBudgetObservation(
 	}
 }
 
-func (s *Session) ensureShrikeUsageTracker() *token.UsageTracker {
+func (s *Session) ensureUsageTracker() *token.UsageTracker {
 	if s == nil || s.LifecycleSvc() == nil {
 		return nil
 	}
 	return s.LifecycleSvc().EnsureUsageTracker()
 }
 
-func (s *Session) currentShrikeUsageTracker() *token.UsageTracker {
+func (s *Session) currentUsageTracker() *token.UsageTracker {
 	if s == nil || s.LifecycleSvc() == nil {
 		return nil
 	}
 	return s.LifecycleSvc().UsageTracker()
 }
 
-func (s *Session) shrikeUsageCanProceed() (bool, string) {
-	tracker := s.currentShrikeUsageTracker()
+func (s *Session) usageCanProceed() (bool, string) {
+	tracker := s.currentUsageTracker()
 	if tracker == nil {
 		return true, ""
 	}

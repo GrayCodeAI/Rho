@@ -12,7 +12,7 @@ import (
 type Stats = hawktoken.Stats
 
 // UsageTracker and UsageLimits expose the session budget API through Hawk's
-// token boundary without changing Shrike's accounting behavior.
+// token boundary without changing the local engine's accounting behavior.
 type (
 	UsageTracker       = hawktoken.UsageTracker
 	UsageLimits        = hawktoken.UsageLimits
@@ -26,7 +26,7 @@ type (
 	RuntimeGraphExport = hawktoken.RuntimeGraphExport
 )
 
-// NewUsageTracker creates an in-memory usage tracker with Shrike's defaults.
+// NewUsageTracker creates an in-memory usage tracker with the engine's defaults.
 func NewUsageTracker() *UsageTracker { return hawktoken.NewUsageTracker() }
 
 // ChunkCode splits source into semantically meaningful token-bounded chunks.
@@ -34,14 +34,14 @@ func ChunkCode(source string, opts ChunkOptions) []CodeChunk {
 	return hawktoken.ChunkCode(source, opts)
 }
 
-// DefaultSecretDetector returns Shrike's concurrency-safe built-in detector.
+// DefaultSecretDetector returns the engine's concurrency-safe built-in detector.
 func DefaultSecretDetector() *SecretDetector { return hawktoken.DefaultSecretDetector() }
 
 func BuildRuntimeGraph(input RuntimeGraphInput) (*RuntimeGraphExport, error) {
 	return hawktoken.BuildRuntimeGraph(input)
 }
 
-// Compress applies Shrike's context compression with a fixed token budget.
+// Compress applies context compression with a fixed token budget.
 func Compress(text string, budget int) (string, Stats) {
 	return hawktoken.Compress(text, budget)
 }

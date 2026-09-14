@@ -766,7 +766,7 @@ func (s *Session) agentLoop(ctx context.Context, ch chan<- StreamEvent) {
 			if s.LifecycleSvc().Pipeline() != nil && textContent.Len() > 0 {
 				postResult := s.LifecycleSvc().Pipeline().PostResponse(textContent.String(), s.Persistence().RawMessages())
 				if postResult != nil {
-					s.recordShrikeRedactionObservation(textContent.String(), postResult.SecretMatches, postResult.SecretTypes)
+					s.recordRedactionObservation(textContent.String(), postResult.SecretMatches, postResult.SecretTypes)
 				}
 				if postResult != nil && postResult.FormattedResponse != "" {
 					textContent.Reset()

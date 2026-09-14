@@ -349,7 +349,7 @@ func configureSessionStartup(sess *engine.Session, settings hawkconfig.Settings,
 	if err := sess.SetMaxBudgetUSD(budget); err != nil {
 		return err
 	}
-	sess.ApplyShrikeUsageSettings(settings.HourlyTokenLimit, settings.DailyTokenLimit, settings.SessionTokenLimit)
+	sess.ApplyUsageSettings(settings.HourlyTokenLimit, settings.DailyTokenLimit, settings.SessionTokenLimit)
 
 	// Teach mode: augment system prompt with explanation instructions
 	if teachMode {

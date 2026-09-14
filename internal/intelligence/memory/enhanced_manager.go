@@ -148,6 +148,7 @@ func (em *EnhancedMemoryManager) HealthCheck() map[string]interface{} {
 	if em.Continuity != nil {
 		r := em.Continuity.Report()
 		health["continuity_score"] = r.AvgScore
+		health["total_sessions"] = r.TotalSessions
 		health["tokens_saved"] = r.TotalTokensSaved
 	}
 

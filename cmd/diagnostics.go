@@ -55,11 +55,6 @@ func doctorReport(settings hawkconfig.Settings) string {
 	b.WriteString("\nEcosystem versions:\n")
 	for _, component := range []struct{ directory, product string }{
 		{directory: "eyrie", product: "Eyrie"},
-		{directory: "harrier", product: "Harrier"},
-		{directory: "shrike", product: "Shrike"},
-		{directory: "kestrel", product: "Kestrel"},
-		{directory: "merlin", product: "Merlin"},
-		{directory: "swift", product: "Swift"},
 	} {
 		versionFile := filepath.Join(filepath.Dir(cwd), component.directory, "VERSION")
 		// #nosec G304 -- versionFile is built from a fixed sibling-repo list

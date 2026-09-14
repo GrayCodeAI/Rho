@@ -259,12 +259,12 @@ func hawkScanTool(executor ToolExecutor) MCPToolHandler {
 	}
 }
 
-// hawkCompressTool compresses text via shrike.
+// hawkCompressTool compresses text via the embedded token engine.
 func hawkCompressTool(executor ToolExecutor) MCPToolHandler {
 	return MCPToolHandler{
 		Name:        "hawk_compress",
-		Description: "Compress text using hawk's shrike module to reduce token usage while preserving meaning.",
-		Annotations: readOnlyAnnotations("Compress text (shrike)"),
+		Description: "Compress text using hawk's embedded token engine to reduce token usage while preserving meaning.",
+		Annotations: readOnlyAnnotations("Compress text (token engine)"),
 		InputSchema: map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
