@@ -4,7 +4,7 @@ This eco uses **independent SemVer per repo** (see [VERSIONING.md](./versioning.
 That gives each component its own release cadence, but raises an obvious
 question: *which combinations of versions are actually tested together?*
 
-The answer lives in [`testdata/compatibility-matrix.json`](./testdata/compatibility-matrix.json).
+The answer lives in [`testdata/compatibility-matrix.json`](../testdata/compatibility-matrix.json).
 
 Platform/provider capability metadata is separate: [`platform-capabilities.json`](./platform-capabilities.json).
 
@@ -94,7 +94,7 @@ present; a Hawk-only checkout simply reports no local consumers to compare.
 
 ## Validating the file
 
-The file is validated against [`testdata/compatibility-matrix.schema.json`](./testdata/compatibility-matrix.schema.json)
+The file is validated against [`testdata/compatibility-matrix.schema.json`](../testdata/compatibility-matrix.schema.json)
 in CI. To validate locally:
 
 ```bash

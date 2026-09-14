@@ -39,10 +39,11 @@ make setup
 go build -o hawk ./cmd/hawk
 ```
 
-`make setup` validates the canonical 15-repository manifest and regenerates the
-parent `../go.work` from the nine local Go repositories. Hawk can also be built
-as a standalone checkout with `GOWORK=off go build ./cmd/hawk`; the sibling
-workspace is only required for cross-repository development and boundary checks.
+`make setup` validates the canonical repository manifest and regenerates the
+parent `../go.work` from the local Go repositories marked `workspace: true`.
+Hawk can also be built as a standalone checkout with `GOWORK=off go build ./cmd/hawk`;
+the sibling workspace is only required for cross-repository development and
+boundary checks.
 
 ### 2. Configure credentials
 
