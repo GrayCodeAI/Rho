@@ -28,16 +28,16 @@ var (
 	statusCostColor   = costViolet
 	statusPRColor     = lipgloss.Color("#56D4DD") // cyan — unique hue in the footer row
 
-	statusCwdStyle          = lipgloss.NewStyle().Foreground(statusCWDColor).Inline(true)
-	statusPRStyle           = lipgloss.NewStyle().Foreground(statusPRColor).Inline(true)
-	statusBranchStyle       = lipgloss.NewStyle().Foreground(statusBranchColor).Inline(true)
-	statusSpecStyle         = lipgloss.NewStyle().Foreground(statusSpecColor).Inline(true)
-	statusTokenStyle        = lipgloss.NewStyle().Foreground(statusTokenColor).Inline(true)
-	statusCostStyle         = lipgloss.NewStyle().Foreground(statusCostColor).Inline(true)
-	statusClockStyle        = lipgloss.NewStyle().Foreground(hudLabelPink).Inline(true)
-	statusFocusStyle        = lipgloss.NewStyle().Foreground(infoSky).Inline(true)
-	statusDimStyle          = lipgloss.NewStyle().Foreground(dimColor).Inline(true)
-	dryRunStyle             = lipgloss.NewStyle().Foreground(warnAmber).Bold(true).Inline(true)
+	statusCwdStyle    = lipgloss.NewStyle().Foreground(statusCWDColor).Inline(true)
+	statusPRStyle     = lipgloss.NewStyle().Foreground(statusPRColor).Inline(true)
+	statusBranchStyle = lipgloss.NewStyle().Foreground(statusBranchColor).Inline(true)
+	statusSpecStyle   = lipgloss.NewStyle().Foreground(statusSpecColor).Inline(true)
+	statusTokenStyle  = lipgloss.NewStyle().Foreground(statusTokenColor).Inline(true)
+	statusCostStyle   = lipgloss.NewStyle().Foreground(statusCostColor).Inline(true)
+	statusClockStyle  = lipgloss.NewStyle().Foreground(hudLabelPink).Inline(true)
+	statusFocusStyle  = lipgloss.NewStyle().Foreground(infoSky).Inline(true)
+	statusDimStyle    = lipgloss.NewStyle().Foreground(dimColor).Inline(true)
+	dryRunStyle       = lipgloss.NewStyle().Foreground(warnAmber).Bold(true).Inline(true)
 )
 
 // renderStatusBar renders the session stats footer below the input area.

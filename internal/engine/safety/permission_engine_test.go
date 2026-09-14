@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
 )
 
 // TestCheckTool_SpecStageBlocksEvenYOLO verifies the core guarantee documented
@@ -253,4 +252,3 @@ func TestCheckTool_SpecWorkflowRequiresOrderButAllowsSupportTools(t *testing.T) 
 		t.Fatal("ApproveImplementation must not skip the Tasks stage")
 	}
 }
-

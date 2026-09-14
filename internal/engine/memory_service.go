@@ -134,6 +134,7 @@ func (s *MemoryService) Finalize(messages []types.EyrieMessage, success bool) {
 
 // Accessors.
 func (s *MemoryService) Memory() MemoryRecaller { return s.memory }
+
 func (s *MemoryService) Enhanced() *memory.EnhancedMemoryManager {
 	return s.enhanced
 }

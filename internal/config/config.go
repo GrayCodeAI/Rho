@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
 )
 
 // LoadAgentsMD reads AGENTS.md from the current directory or parents.

@@ -71,12 +71,12 @@ var (
 	toolStyle    = lipgloss.NewStyle().Foreground(toolGold).Bold(true)
 	toolDimStyle = lipgloss.NewStyle().Foreground(textDisabled)
 
-	slashCmdStyle       = lipgloss.NewStyle().Foreground(textDisabled)
-	slashDescStyle      = lipgloss.NewStyle().Foreground(textDisabled)
-	slashSelCmdStyle    = lipgloss.NewStyle().Foreground(hawkColor).Bold(true)
-	slashSelDescStyle   = lipgloss.NewStyle().Foreground(hawkColor)
-	inputBorderStyle    = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, true, false).BorderForeground(borderDim)
-	ghostHintStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("238")).Italic(true)
+	slashCmdStyle     = lipgloss.NewStyle().Foreground(textDisabled)
+	slashDescStyle    = lipgloss.NewStyle().Foreground(textDisabled)
+	slashSelCmdStyle  = lipgloss.NewStyle().Foreground(hawkColor).Bold(true)
+	slashSelDescStyle = lipgloss.NewStyle().Foreground(hawkColor)
+	inputBorderStyle  = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, true, false).BorderForeground(borderDim)
+	ghostHintStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("238")).Italic(true)
 
 	// Backwards-compatible alias for callers that still use the old name.
 	// New code should use the purpose-named constants in theme.go.

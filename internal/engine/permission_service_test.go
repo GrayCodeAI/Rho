@@ -5,7 +5,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-
 )
 
 func TestPermissionService_CheckTool(t *testing.T) {

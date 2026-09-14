@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 )
 
 func TestTerminal_LifecycleAndRead(t *testing.T) {

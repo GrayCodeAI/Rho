@@ -50,7 +50,7 @@ type PermissionEngine struct {
 	// attached to decisions so audit consumers can correlate evaluations.
 	Revision uint64
 	Stage    SpecStage
-	specDone    specDone
+	specDone specDone
 	// DryRun is a global kill switch: when true, every tool call is denied
 	// unconditionally, regardless of tier or spec stage. Replaces the old
 	// PermissionModeDontAsk's hard-lockout role — that mode was otherwise
