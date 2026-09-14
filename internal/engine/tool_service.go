@@ -6,11 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/GrayCodeAI/hawk/internal/engine/diff"
 	"github.com/GrayCodeAI/hawk/internal/hooks"
+	"github.com/GrayCodeAI/hawk/internal/intelligence/repomap"
 	"github.com/GrayCodeAI/hawk/internal/observability/metrics"
 	"github.com/GrayCodeAI/hawk/internal/observability/oteltrace"
 	"github.com/GrayCodeAI/hawk/internal/prompts"
@@ -39,6 +41,46 @@ type ToolService struct {
 	metrics           *metrics.Registry
 	auditLog          *securitylog.Log
 	pipeline          *tool.Pipeline
+
+	// semanticMu guards semanticIdx, the lazily-built local code-search index.
+	semanticMu  sync.Mutex
+	semanticIdx *repomap.SemanticIndex
+}
+
+// semanticIndex returns the cached TF-IDF code-search index, building it from
+// the working directory on first use. It is safe for concurrent callers.
+func (s *ToolService) semanticIndex() (*repomap.SemanticIndex, error) {
+	s.semanticMu.Lock()
+	defer s.semanticMu.Unlock()
+	if s.semanticIdx != nil {
+		return s.semanticIdx, nil
+	}
+	dir := s.WorkingDir()
+	if dir == "" {
+		dir, _ = os.Getwd()
+	}
+	if dir == "" {
+		return nil, fmt.Errorf("code search unavailable: no working directory")
+	}
+	idx, err := repomap.BuildSemanticIndex(dir, nil, 0)
+	if err != nil {
+		return nil, fmt.Errorf("code search index: %w", err)
+	}
+	s.semanticIdx = idx
+	return idx, nil
+}
+
+// RefreshCodeIndex drops the cached semantic index so the next search rebuilds
+// it from disk.
+func (s *ToolService) RefreshCodeIndex() error {
+	if s == nil {
+		return nil
+	}
+	s.semanticMu.Lock()
+	s.semanticIdx = nil
+	s.semanticMu.Unlock()
+	_, err := s.semanticIndex()
+	return err
 }
 
 func (s *ToolService) SetAgentSpawnFn(fn tool.AgentSpawnFn) {
@@ -436,6 +478,33 @@ func (s *ToolService) ExecuteOne(ctx context.Context, tc types.ToolCall, overrid
 		Registry:            s.registry,
 		AutoCommit:          s.AutoCommit(),
 		TaskExecutor:        s.deps.taskExec,
+		// Semantic code search backed by the local TF-IDF index. The index is
+		// built lazily from the working directory and cached on the service.
+		CodeSearchFn: func(cctx context.Context, query string, limit int) ([]tool.CodeSearchResult, error) {
+			idx, err := s.semanticIndex()
+			if err != nil {
+				return nil, err
+			}
+			chunks := idx.Search(query, limit)
+			out := make([]tool.CodeSearchResult, 0, len(chunks))
+			for _, c := range chunks {
+				out = append(out, tool.CodeSearchResult{
+					Path:      c.Path,
+					StartLine: c.StartLine,
+					EndLine:   c.EndLine,
+					Content:   c.Content,
+					Language:  tool.LanguageForFile(c.Path),
+				})
+			}
+			return out, nil
+		},
+		RefreshCodeIndexFn: func(cctx context.Context) error {
+			s.semanticMu.Lock()
+			s.semanticIdx = nil
+			s.semanticMu.Unlock()
+			_, err := s.semanticIndex()
+			return err
+		},
 	})
 	t := override
 	if t == nil && s.registry != nil {
