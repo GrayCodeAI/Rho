@@ -111,6 +111,7 @@ Flags:
       --auto-skill                         auto-detect project and install matching skills
   -c, --continue                           continue the most recent conversation in the current directory
       --council                            consult multiple models and synthesize best answer
+      --cwd string                         run against this project directory instead of the current one
       --dangerously-skip-permissions       skip normal permission prompts (hooks, spec gates, and dry-run still apply)
       --disallowed-tools stringArray       comma or space-separated tool permission rules to deny (e.g. "Bash(git:*) Edit")
       --dry-run                            deny every tool call unconditionally (preview only, nothing executes)
@@ -126,7 +127,7 @@ Flags:
       --no-auto-catalog-refresh            disable automatic catalog refresh when cache is missing, empty, or stale
       --no-session-persistence             disable session persistence in print mode
       --output-fields string               comma-separated field whitelist for --output-format json (e.g. "result,session_id")
-      --output-format string               output format for --print: "text", "json", or "stream-json" (default "text")
+      --output-format string               output format for --print: "text", "json", "stream-json", or "transcript" (default "text")
       --power int                          power level 1-10 (auto-configures model, context, review depth) (default 5)
   -p, --print                              print response and exit
       --prompt string                      send a single prompt and exit (legacy alias for --print)
