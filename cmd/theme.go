@@ -280,13 +280,20 @@ func ApplyTheme(name string) {
 	borderDim = compat.AdaptiveColor{Light: lipgloss.Color("#C6C6C6"), Dark: lipgloss.Color(p.Line2)}
 	bgCode = lipgloss.Color(p.Panel)
 
-	// 9. Dark-background flag is now handled via LightDark in v2; no setter needed.
+	// 9. Minimal chrome: the Tau theme (and any future low-chrome theme) uses
+	// a hairline separator under the input instead of a full box border.
+	// refreshThemeStyles rebuilds inputBorderStyle from this flag.
+	minimalChrome = entry.Name == "tau"
 
 	// 10. Rebuild package-level styles that snapshotted the old colors at
 	// init time. Without this, markdown/chat/agent-grid styles keep the
 	// default palette after a live theme switch.
 	refreshThemeStyles()
 }
+
+// minimalChrome is set by ApplyTheme when the active theme prefers a
+// low-chrome layout (no box borders around the input).
+var minimalChrome bool
 
 // refreshThemeStyles rebuilds every package-level lipgloss.Style var that
 // captures a theme color at package-init time. ApplyTheme mutates the color
@@ -324,7 +331,12 @@ func refreshThemeStyles() {
 	slashDescStyle = lipgloss.NewStyle().Foreground(textDisabled)
 	slashSelCmdStyle = lipgloss.NewStyle().Foreground(rhoColor).Bold(true)
 	slashSelDescStyle = lipgloss.NewStyle().Foreground(rhoColor)
-	inputBorderStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, true, false).BorderForeground(borderDim)
+	if minimalChrome {
+		// Tau-style: a single hairline rule under the input, no side borders.
+		inputBorderStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, true, false).BorderForeground(borderDim)
+	} else {
+		inputBorderStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, true, false).BorderForeground(borderDim)
+	}
 	dimColor = textDisabled
 
 	// agent_grid.go
