@@ -12,7 +12,7 @@ const (
 	appName           = "rho"
 	legacyAppName     = "hawk"
 	envConfigDir      = "RHO_CONFIG_DIR"
-	envEyrieConfigDir = "EYRIE_CONFIG_DIR"
+	envFluxConfigDir = "FLUX_CONFIG_DIR"
 	envStateDir       = "RHO_STATE_DIR"
 	envCacheDir       = "RHO_CACHE_DIR"
 	projectIDHashLen  = 12
@@ -83,12 +83,12 @@ func SettingsPath() string {
 }
 
 func ProviderConfigPath() string {
-	// Eyrie owns provider routing state and resolves it from EYRIE_CONFIG_DIR,
+	// Flux owns provider routing state and resolves it from FLUX_CONFIG_DIR,
 	// defaulting to its own directory under the user config root.
-	if dir := cleanEnvDir(envEyrieConfigDir); dir != "" {
+	if dir := cleanEnvDir(envFluxConfigDir); dir != "" {
 		return filepath.Join(dir, "provider.json")
 	}
-	return filepath.Join(mustUserConfigDir(), "eyrie", "provider.json")
+	return filepath.Join(mustUserConfigDir(), "flux", "provider.json")
 }
 
 func SessionsDir() string {
