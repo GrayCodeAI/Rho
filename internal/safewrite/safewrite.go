@@ -94,8 +94,8 @@ func WriteFile(path string, data []byte) error {
 	}
 
 	// Build a temp file name in the same directory. The suffix is drawn from
-// crypto/rand and the file is opened with O_EXCL, so a same-directory attacker
-// cannot pre-create the temp path to hijack or block the write.
+	// crypto/rand and the file is opened with O_EXCL, so a same-directory attacker
+	// cannot pre-create the temp path to hijack or block the write.
 	var fd int
 	var tmpName string
 	for attempt := 0; attempt < 5; attempt++ {
