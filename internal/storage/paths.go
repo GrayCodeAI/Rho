@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	appName           = "rho"
-	legacyAppName     = "hawk"
-	envConfigDir      = "RHO_CONFIG_DIR"
+	appName          = "rho"
+	legacyAppName    = "hawk"
+	envConfigDir     = "RHO_CONFIG_DIR"
 	envFluxConfigDir = "FLUX_CONFIG_DIR"
-	envStateDir       = "RHO_STATE_DIR"
-	envCacheDir       = "RHO_CACHE_DIR"
-	projectIDHashLen  = 12
+	envStateDir      = "RHO_STATE_DIR"
+	envCacheDir      = "RHO_CACHE_DIR"
+	projectIDHashLen = 12
 )
 
 // legacyEnvDir reads a legacy HAWK_* override (e.g. HAWK_STATE_DIR) so an

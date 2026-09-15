@@ -11,8 +11,8 @@ import (
 
 // EcosystemReport is the structured view of the ecosystem panel.
 type EcosystemReport struct {
-	Flux EcosystemFlux `json:"flux"`
-	Token EngineToken    `json:"token"`
+	Flux  EcosystemFlux `json:"flux"`
+	Token EngineToken   `json:"token"`
 }
 
 type EcosystemFlux struct {

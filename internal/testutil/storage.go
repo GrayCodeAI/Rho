@@ -37,9 +37,9 @@ func InstallHermeticStorage() (func(), error) {
 		return nil, err
 	}
 	for key, suffix := range map[string]string{
-		"RHO_CONFIG_DIR":   "config",
-		"RHO_STATE_DIR":    "state",
-		"RHO_CACHE_DIR":    "cache",
+		"RHO_CONFIG_DIR":  "config",
+		"RHO_STATE_DIR":   "state",
+		"RHO_CACHE_DIR":   "cache",
 		"FLUX_CONFIG_DIR": "flux-config",
 	} {
 		if _, ok := os.LookupEnv(key); !ok {

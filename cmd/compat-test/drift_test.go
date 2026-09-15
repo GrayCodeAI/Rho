@@ -40,7 +40,7 @@ require github.com/GrayCodeAI/other v1.9.0 // indirect
 		t.Fatalf("readRequires: %v", err)
 	}
 	tests := map[string]string{
-		"github.com/GrayCodeAI/flux": "v1.0.0",
+		"github.com/GrayCodeAI/flux":  "v1.0.0",
 		"github.com/spf13/cobra":      "v1.8.0",
 		"github.com/GrayCodeAI/other": "v1.9.0",
 	}

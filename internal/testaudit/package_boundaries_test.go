@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	rhoModule   = "github.com/GrayCodeAI/rho"
+	rhoModule  = "github.com/GrayCodeAI/rho"
 	fluxModule = "github.com/GrayCodeAI/flux"
 )
 

@@ -95,7 +95,7 @@ func (s *stubProvider) CredentialProviders(context.Context) []fluxengine.Credent
 
 func (s *stubProvider) GatewayDefinitions() []fluxengine.Gateway { return nil }
 
-func (s *stubProvider) Gateways(context.Context) []fluxengine.Gateway         { return nil }
+func (s *stubProvider) Gateways(context.Context) []fluxengine.Gateway          { return nil }
 func (s *stubProvider) GatewayRegion(string) (string, bool)                    { return "", false }
 func (s *stubProvider) SetGatewayRegion(context.Context, string, string) error { return nil }
 func (s *stubProvider) GatewayForModel(context.Context, string) string         { return "" }

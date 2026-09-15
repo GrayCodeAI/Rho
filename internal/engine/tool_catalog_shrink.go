@@ -45,7 +45,7 @@ func shrinkFluxTools(tools []types.FluxTool) []types.FluxTool {
 	}
 
 	type wireTool struct {
-		Type     string          `json:"type"`
+		Type     string         `json:"type"`
 		Function types.FluxTool `json:"function"`
 	}
 	wire := make([]wireTool, len(tools))
